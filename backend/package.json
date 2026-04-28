@@ -1,0 +1,29 @@
+{
+  "name": "payroll-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend API skeleton for payroll_system.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node scripts/smoke.js",
+    "migrate:up": "node scripts/migrate.js up",
+    "migrate:down": "node scripts/migrate.js down",
+    "migrate:redo": "node scripts/migrate.js redo",
+    "migrate:status": "node scripts/migrate.js status",
+    "migrate:create": "node scripts/migrate.js create"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-pg-migrate": "^7.8.0",
+    "pino": "^9.3.2",
+    "pino-http": "^9.0.0",
+    "pg": "^8.12.0"
+  }
+}
