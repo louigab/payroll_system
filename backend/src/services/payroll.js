@@ -317,48 +317,52 @@ async function listPayrollItems(runId, client) {
         };
       });
 
-    if (rows.length === 0) {
-      const run = mem.payroll_runs.find(r => String(r.id) === String(runId));
-      if (!run) return rows;
+    const run = mem.payroll_runs.find(r => String(r.id) === String(runId));
+    if (!run) return rows;
 
-      const employees = (store.employees || []).filter(e => {
-        if (!e.status) return true;
-        return String(e.status).toLowerCase() === "active";
+    const employees = (store.employees || []).filter(e => {
+      if (!e.status) return true;
+      return String(e.status).toLowerCase() === "active";
+    });
+
+    const existingIds = new Set(rows.map(r => String(r.employee_id)));
+    const created = [];
+
+    employees.forEach(emp => {
+      if (existingIds.has(String(emp.id))) return;
+      const baseSalary = toNumber(emp.base_salary || 0);
+      const hourlyRate = toNumber(emp.hourly_rate || 0);
+      const basePay = baseSalary > 0 ? baseSalary : roundMoney(hourlyRate * 8 * 22);
+      const grossPay = roundMoney(basePay);
+      const taxes = 0;
+      const deductions = 0;
+      const netPay = roundMoney(grossPay - taxes - deductions);
+
+      const item = {
+        id: "mem_item_" + mem.nextPayrollItemId++,
+        payroll_run_id: run.id,
+        employee_id: emp.id,
+        base_pay: basePay,
+        gross_pay: grossPay,
+        taxes,
+        tax_amount: taxes,
+        deductions,
+        net_pay: netPay,
+        ot_hours: 0,
+        allowances: 0,
+        created_at: new Date().toISOString()
+      };
+      mem.payroll_items.unshift(item);
+      created.push({
+        ...item,
+        first_name: emp.first_name || null,
+        last_name: emp.last_name || null
       });
+    });
 
-      const created = employees.map(emp => {
-        const baseSalary = toNumber(emp.base_salary || 0);
-        const hourlyRate = toNumber(emp.hourly_rate || 0);
-        const basePay = baseSalary > 0 ? baseSalary : roundMoney(hourlyRate * 8 * 22);
-        const grossPay = roundMoney(basePay);
-        const taxes = 0;
-        const deductions = 0;
-        const netPay = roundMoney(grossPay - taxes - deductions);
-
-        const item = {
-          id: "mem_item_" + mem.nextPayrollItemId++,
-          payroll_run_id: run.id,
-          employee_id: emp.id,
-          base_pay: basePay,
-          gross_pay: grossPay,
-          taxes,
-          tax_amount: taxes,
-          deductions,
-          net_pay: netPay,
-          ot_hours: 0,
-          allowances: 0,
-          created_at: new Date().toISOString()
-        };
-        mem.payroll_items.unshift(item);
-        return {
-          ...item,
-          first_name: emp.first_name || null,
-          last_name: emp.last_name || null
-        };
-      });
-
-      if (created.length > 0) saveStore();
-      rows = created;
+    if (created.length > 0) {
+      saveStore();
+      rows = rows.concat(created);
     }
 
     rows.sort((a, b) => String(a.last_name || "").localeCompare(String(b.last_name || "")));

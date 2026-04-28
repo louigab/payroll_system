@@ -1085,10 +1085,46 @@
     let emp = null;
     try {
       const emps = await apiListEmployees({ limit: 200 });
-      emp = emps.find(e => e.email && e.email.toLowerCase() === (user.email || '').toLowerCase());
+      emp = emps.find(e => String(e.user_id || '') === String(user.id || ''))
+        || emps.find(e => e.email && e.email.toLowerCase() === (user.email || '').toLowerCase());
     } catch (_) {}
 
-    if (!emp) return; // no employee record — basic token info shown above
+    if (!emp) {
+      set('statPayslipsCount', 0);
+      set('statDaysPresent', 0);
+      set('statNetPay', '—');
+      set('heroNetPay', '—');
+      set('salaryHeroVal', '—');
+      set('salaryHeroLabel', 'Net Pay');
+      set('salaryHeroPeriod', 'Pay period: —');
+      set('sbBasicPay', '—');
+      set('sbRiceSubsidy', '—');
+      set('sbTransport', '—');
+      set('sbPera', '—');
+      set('sbClothing', '—');
+      set('sbTotalEarnings', '—');
+      set('sbTax', '—');
+      set('sbSss', '—');
+      set('sbPhilhealth', '—');
+      set('sbPagibig', '—');
+      set('sbLoan', '—');
+      set('sbTotalDed', '—');
+      set('sbSummaryGross', '—');
+      set('sbSummaryDed', '—');
+      set('sbSummaryNet', '—');
+
+      const payslipsList = document.getElementById('payslipsList');
+      if (payslipsList) payslipsList.innerHTML = '<p style="padding:22px;text-align:center;color:#94a3b8;font-size:13.5px;">No employee record linked to this account.</p>';
+      const historyTbody = document.getElementById('historyTbody');
+      if (historyTbody) historyTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:22px;font-size:13.5px;">No payroll records found.</td></tr>';
+
+      notifications = [];
+      unreadCount = 0;
+      renderNotifications([]);
+      updateNotifBadge();
+      showToast('No employee record linked to this account.', 'error');
+      return;
+    }
 
     const fullName = [emp.first_name, emp.last_name].filter(Boolean).join(' ') || tokenName;
     const initials  = fullName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();

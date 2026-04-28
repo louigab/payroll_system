@@ -74,9 +74,18 @@ router.post("/", async (req, res, next) => {
 
     // Auto-provision a staff portal account for the employee
     let tempPassword = null;
+    let userId = null;
     if (payload.email) {
-      const { created } = createUser(payload.email, DEFAULT_STAFF_PASSWORD, ["staff"]);
+      const { user, created } = createUser(payload.email, DEFAULT_STAFF_PASSWORD, ["staff"]);
       if (created) tempPassword = DEFAULT_STAFF_PASSWORD;
+      if (user) userId = user.id;
+    }
+
+    if (userId && String(employee.user_id || "") !== String(userId)) {
+      try {
+        const updated = await updateEmployee(employee.id, { userId }, req.user && req.user.sub);
+        if (updated && updated.user_id) employee.user_id = updated.user_id;
+      } catch (_) { /* ignore linking failures */ }
     }
 
     res.status(201).json({ data: { ...employee, tempPassword } });
