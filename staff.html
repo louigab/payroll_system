@@ -428,7 +428,7 @@
     <button class="nav-item" onclick="showView('notifications')">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
       Notifications
-      <span class="notif-badge" id="navNotifBadge">3</span>
+      <span class="notif-badge" id="navNotifBadge" style="display:none">0</span>
     </button>
   </nav>
 
@@ -471,7 +471,7 @@
       <div>
         <p style="color:rgba(255,255,255,.75);font-size:13px;margin-bottom:4px;">Good morning 👋</p>
         <h2 id="welcomeH2" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Welcome back, John Doe</h2>
-        <p style="font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6;">Your April 2025 payslip is ready. Next salary release: <strong style="color:#fff;">April 30, 2025</strong>.</p>
+        <p id="welcomeBannerText" style="font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6;">Your April 2025 payslip is ready. Next salary release: <strong style="color:#fff;">April 30, 2025</strong>.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;">
         <div style="background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:14px 22px;text-align:center;">
@@ -491,17 +491,17 @@
       </div>
       <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
         <div style="width:42px;height:42px;border-radius:12px;background:var(--green-light);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;">📅</div>
-        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">22</div>
+        <div id="statDaysPresent" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">—</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Days Present</div>
       </div>
       <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
         <div style="width:42px;height:42px;border-radius:12px;background:var(--amber-light);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
-        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">12</div>
+        <div id="statPayslipsCount" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">—</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Payslips Available</div>
       </div>
       <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
         <div style="width:42px;height:42px;border-radius:12px;background:var(--violet-light);color:var(--violet);display:flex;align-items:center;justify-content:center;font-size:18px;">🔔</div>
-        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">3</div>
+        <div id="statNewNotifs" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">—</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:500;">New Notifications</div>
       </div>
     </div>
@@ -535,13 +535,11 @@
         <div><h3>Recent Notifications</h3><p>Latest updates for you</p></div>
         <button onclick="showView('notifications')" style="font-size:12px;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--blue-light)'" onmouseout="this.style.background='none'">View all →</button>
       </div>
-      <div class="notif-item unread">
-        <div class="notif-icon" style="background:var(--green-light);">💰</div>
-        <div class="notif-body"><h4>Salary Released — April 2025</h4><p>Your net pay of ₱101,800 has been credited to your account.</p><div class="notif-meta"><span class="notif-time">Today, 9:00 AM</span><span class="unread-dot"></span></div></div>
-      </div>
-      <div class="notif-item unread">
-        <div class="notif-icon" style="background:var(--blue-light);">📄</div>
-        <div class="notif-body"><h4>April Payslip Available</h4><p>Your payslip for April 2025 is ready to view and download.</p><div class="notif-meta"><span class="notif-time">Today, 9:05 AM</span><span class="unread-dot"></span></div></div>
+      <div id="notifPreviewList" style="padding:0 22px 16px;">
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--blue-light);">...</div>
+          <div class="notif-body"><h4>Loading notifications</h4><p>Fetching recent updates...</p><div class="notif-meta"><span class="notif-time">—</span></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -555,8 +553,8 @@
         <p class="ph-pos" id="phPos">Product Designer · IT Department</p>
         <div class="ph-pills">
           <span class="ph-pill">🟢 Active</span>
-          <span class="ph-pill">Employee ID: BFAR-2023-047</span>
-          <span class="ph-pill">Since Jan 10, 2023</span>
+          <span id="profileEmpIdPill" class="ph-pill">Employee ID: —</span>
+          <span id="profileHireDatePill" class="ph-pill">Since —</span>
         </div>
       </div>
     </div>
@@ -609,9 +607,9 @@
   <div class="view" id="view-salary">
     <div class="salary-hero">
       <div>
-        <div class="sh-label">April 2025 — Net Pay</div>
+        <div id="salaryHeroLabel" class="sh-label">April 2025 — Net Pay</div>
         <div class="sh-val" id="salaryHeroVal">₱101,800.00</div>
-        <div class="sh-period">Pay period: April 1–30, 2025 · Released April 30, 2025</div>
+        <div id="salaryHeroPeriod" class="sh-period">Pay period: April 1–30, 2025 · Released April 30, 2025</div>
       </div>
       <div class="sh-status">✅ Released</div>
     </div>
@@ -623,10 +621,10 @@
           <span class="bs-dot" style="background:var(--green);"></span>Earnings
         </div>
         <div class="bs-row"><span class="bsr-label">Basic Pay</span><span class="bsr-val" id="sbBasicPay">₱85,000</span></div>
-        <div class="bs-row"><span class="bsr-label">Rice Subsidy</span><span class="bsr-val">₱2,000</span></div>
-        <div class="bs-row"><span class="bsr-label">Transportation</span><span class="bsr-val">₱2,000</span></div>
-        <div class="bs-row"><span class="bsr-label">PERA Allowance</span><span class="bsr-val">₱2,000</span></div>
-        <div class="bs-row"><span class="bsr-label">Clothing Allowance</span><span class="bsr-val">₱6,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Rice Subsidy</span><span id="sbRiceSubsidy" class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Transportation</span><span id="sbTransport" class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">PERA Allowance</span><span id="sbPera" class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Clothing Allowance</span><span id="sbClothing" class="bsr-val">₱6,000</span></div>
         <div class="bs-total"><span>Total Earnings</span><span id="sbTotalEarnings" style="color:var(--green);">₱97,000</span></div>
         <div class="bar-visual"><div class="bar-visual-fill" style="width:88%;background:var(--green);"></div></div>
       </div>
@@ -636,12 +634,12 @@
         <div class="bs-header" style="background:var(--red-light);">
           <span class="bs-dot" style="background:var(--red);"></span>Deductions
         </div>
-        <div class="bs-row"><span class="bsr-label">Withholding Tax</span><span class="bsr-val" style="color:var(--red);">- ₱8,500</span></div>
-        <div class="bs-row"><span class="bsr-label">SSS Contribution</span><span class="bsr-val" style="color:var(--red);">- ₱1,350</span></div>
-        <div class="bs-row"><span class="bsr-label">PhilHealth</span><span class="bsr-val" style="color:var(--red);">- ₱1,125</span></div>
-        <div class="bs-row"><span class="bsr-label">Pag-IBIG</span><span class="bsr-val" style="color:var(--red);">- ₱200</span></div>
-        <div class="bs-row"><span class="bsr-label">Salary Loan</span><span class="bsr-val" style="color:var(--red);">- ₱4,025</span></div>
-        <div class="bs-total"><span>Total Deductions</span><span style="color:var(--red);">- ₱15,200</span></div>
+        <div class="bs-row"><span class="bsr-label">Withholding Tax</span><span id="sbTax" class="bsr-val" style="color:var(--red);">- ₱8,500</span></div>
+        <div class="bs-row"><span class="bsr-label">SSS Contribution</span><span id="sbSss" class="bsr-val" style="color:var(--red);">- ₱1,350</span></div>
+        <div class="bs-row"><span class="bsr-label">PhilHealth</span><span id="sbPhilhealth" class="bsr-val" style="color:var(--red);">- ₱1,125</span></div>
+        <div class="bs-row"><span class="bsr-label">Pag-IBIG</span><span id="sbPagibig" class="bsr-val" style="color:var(--red);">- ₱200</span></div>
+        <div class="bs-row"><span class="bsr-label">Salary Loan</span><span id="sbLoan" class="bsr-val" style="color:var(--red);">- ₱4,025</span></div>
+        <div class="bs-total"><span>Total Deductions</span><span id="sbTotalDed" style="color:var(--red);">- ₱15,200</span></div>
         <div class="bar-visual"><div class="bar-visual-fill" style="width:16%;background:var(--red);"></div></div>
       </div>
     </div>
@@ -673,61 +671,7 @@
   <div class="view" id="view-payslips">
     <div class="card">
       <div class="card-header"><div><h3>My Payslips</h3><p>Download your monthly payslips</p></div></div>
-      <div class="payslip-item">
-        <div class="ps-left">
-          <div class="ps-icon">📄</div>
-          <div><div class="ps-month">April 2025</div><div class="ps-sub">Pay period: Apr 1–30 · Released Apr 30</div></div>
-        </div>
-        <div class="ps-right">
-          <span class="ps-amount">₱101,800</span>
-          <span class="ps-badge released">Released</span>
-          <button class="dl-btn" onclick="fakeDownload('April-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
-      </div>
-      <div class="payslip-item">
-        <div class="ps-left">
-          <div class="ps-icon">📄</div>
-          <div><div class="ps-month">March 2025</div><div class="ps-sub">Pay period: Mar 1–31 · Released Mar 31</div></div>
-        </div>
-        <div class="ps-right">
-          <span class="ps-amount">₱101,800</span>
-          <span class="ps-badge released">Released</span>
-          <button class="dl-btn" onclick="fakeDownload('March-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
-      </div>
-      <div class="payslip-item">
-        <div class="ps-left">
-          <div class="ps-icon">📄</div>
-          <div><div class="ps-month">February 2025</div><div class="ps-sub">Pay period: Feb 1–28 · Released Feb 28</div></div>
-        </div>
-        <div class="ps-right">
-          <span class="ps-amount">₱99,200</span>
-          <span class="ps-badge released">Released</span>
-          <button class="dl-btn" onclick="fakeDownload('February-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
-      </div>
-      <div class="payslip-item">
-        <div class="ps-left">
-          <div class="ps-icon">📄</div>
-          <div><div class="ps-month">January 2025</div><div class="ps-sub">Pay period: Jan 1–31 · Released Jan 31</div></div>
-        </div>
-        <div class="ps-right">
-          <span class="ps-amount">₱99,200</span>
-          <span class="ps-badge released">Released</span>
-          <button class="dl-btn" onclick="fakeDownload('January-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
-      </div>
-      <div class="payslip-item">
-        <div class="ps-left">
-          <div class="ps-icon" style="background:var(--amber-light);color:var(--amber);">⏳</div>
-          <div><div class="ps-month">May 2025</div><div class="ps-sub">Pay period: May 1–31 · Due May 31</div></div>
-        </div>
-        <div class="ps-right">
-          <span class="ps-amount" style="color:var(--text-muted);">Pending</span>
-          <span class="ps-badge pending">Pending</span>
-          <button class="dl-btn" style="opacity:.4;cursor:not-allowed;" disabled><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
-      </div>
+      <div id="payslipsList"><p style="padding:22px;text-align:center;color:#94a3b8;font-size:13.5px;">Loading payslips…</p></div>
     </div>
   </div>
 
@@ -747,16 +691,8 @@
             <th>Release Date</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td><strong>April 2025</strong></td><td>₱85,000</td><td>₱16,000</td><td>₱15,200</td><td style="font-weight:700;color:var(--blue);">₱101,800</td><td><span class="badge released">Released</span></td><td>Apr 30, 2025</td></tr>
-          <tr><td><strong>March 2025</strong></td><td>₱85,000</td><td>₱16,000</td><td>₱15,200</td><td style="font-weight:700;color:var(--blue);">₱101,800</td><td><span class="badge released">Released</span></td><td>Mar 31, 2025</td></tr>
-          <tr><td><strong>February 2025</strong></td><td>₱83,000</td><td>₱16,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱99,200</td><td><span class="badge released">Released</span></td><td>Feb 28, 2025</td></tr>
-          <tr><td><strong>January 2025</strong></td><td>₱83,000</td><td>₱16,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱99,200</td><td><span class="badge released">Released</span></td><td>Jan 31, 2025</td></tr>
-          <tr><td><strong>December 2024</strong></td><td>₱83,000</td><td>₱28,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱121,200</td><td><span class="badge released">Released</span></td><td>Dec 20, 2024</td></tr>
-          <tr><td><strong>November 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Nov 30, 2024</td></tr>
-          <tr><td><strong>October 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Oct 31, 2024</td></tr>
-          <tr><td><strong>September 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Sep 30, 2024</td></tr>
-          <tr><td><strong>May 2025</strong></td><td>—</td><td>—</td><td>—</td><td style="color:var(--text-muted);">Pending</td><td><span class="badge pending">Pending</span></td><td>May 31, 2025</td></tr>
+        <tbody id="historyTbody">
+          <tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:22px;font-size:13.5px;">Loading payroll history…</td></tr>
         </tbody>
       </table>
     </div>
@@ -770,56 +706,9 @@
         <button onclick="markAllRead()" style="font-size:12px;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--blue-light)'" onmouseout="this.style.background='none'">Mark all read</button>
       </div>
       <div id="notifList">
-        <div class="notif-item unread" data-id="1">
-          <div class="notif-icon" style="background:var(--green-light);">💰</div>
-          <div class="notif-body">
-            <h4>Salary Released — April 2025</h4>
-            <p>Your net pay of ₱101,800 has been successfully credited to your account ending in ****4521.</p>
-            <div class="notif-meta"><span class="notif-time">Today, 9:00 AM</span><span class="unread-dot"></span></div>
-          </div>
-          <button class="notif-mark-btn" onclick="markRead(1)">Mark read</button>
-        </div>
-        <div class="notif-item unread" data-id="2">
-          <div class="notif-icon" style="background:var(--blue-light);">📄</div>
-          <div class="notif-body">
-            <h4>April Payslip Now Available</h4>
-            <p>Your payslip for April 2025 is ready. You can view and download it from the My Payslips section.</p>
-            <div class="notif-meta"><span class="notif-time">Today, 9:05 AM</span><span class="unread-dot"></span></div>
-          </div>
-          <button class="notif-mark-btn" onclick="markRead(2)">Mark read</button>
-        </div>
-        <div class="notif-item unread" data-id="3">
-          <div class="notif-icon" style="background:var(--amber-light);">📅</div>
-          <div class="notif-body">
-            <h4>Next Payroll: May 31, 2025</h4>
-            <p>Reminder: The next salary release is scheduled for May 31, 2025. Please ensure your attendance records are up to date.</p>
-            <div class="notif-meta"><span class="notif-time">Today, 8:00 AM</span><span class="unread-dot"></span></div>
-          </div>
-          <button class="notif-mark-btn" onclick="markRead(3)">Mark read</button>
-        </div>
-        <div class="notif-item" data-id="4">
-          <div class="notif-icon" style="background:var(--green-light);">💰</div>
-          <div class="notif-body">
-            <h4>Salary Released — March 2025</h4>
-            <p>Your net pay of ₱101,800 has been credited to your account.</p>
-            <div class="notif-meta"><span class="notif-time">Mar 31, 2025</span></div>
-          </div>
-        </div>
-        <div class="notif-item" data-id="5">
-          <div class="notif-icon" style="background:var(--violet-light);">⚙️</div>
-          <div class="notif-body">
-            <h4>System Maintenance — March 15</h4>
-            <p>The payroll system was briefly offline for maintenance. All data has been fully restored.</p>
-            <div class="notif-meta"><span class="notif-time">Mar 15, 2025</span></div>
-          </div>
-        </div>
-        <div class="notif-item" data-id="6">
-          <div class="notif-icon" style="background:var(--blue-light);">📢</div>
-          <div class="notif-body">
-            <h4>Policy Update: BIR Filing Reminder</h4>
-            <p>Please submit your ITR for 2024 before April 15, 2025. Contact HR for assistance.</p>
-            <div class="notif-meta"><span class="notif-time">Mar 1, 2025</span></div>
-          </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--blue-light);">...</div>
+          <div class="notif-body"><h4>Loading notifications</h4><p>Fetching your latest updates...</p><div class="notif-meta"><span class="notif-time">—</span></div></div>
         </div>
       </div>
     </div>
@@ -832,16 +721,16 @@
       <div class="settings-row">
         <div class="sr-left">
           <div class="sr-icon" style="background:var(--blue-light);">👤</div>
-          <div><div class="sr-label">Profile Information</div><div class="sr-sub">John Doe · john.doe@bfar.gov.ph</div></div>
+          <div><div class="sr-label">Profile Information</div><div id="settingsProfileSub" class="sr-sub">John Doe · john.doe@bfar.gov.ph</div></div>
         </div>
         <button onclick="showView('profile')" style="font-size:12.5px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;">Edit →</button>
       </div>
       <div class="settings-row">
         <div class="sr-left">
           <div class="sr-icon" style="background:var(--amber-light);">🔑</div>
-          <div><div class="sr-label">Change Password</div><div class="sr-sub">Last changed 3 months ago</div></div>
+          <div><div class="sr-label">Change Password</div><div class="sr-sub" id="pwdLastChanged">Update your login password</div></div>
         </div>
-        <button onclick="showToast('Password change sent to your email.','success')" style="font-size:12.5px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;">Change →</button>
+        <button onclick="openChangePwdModal()" style="font-size:12.5px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;">Change →</button>
       </div>
 
       <div style="padding:10px 22px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);">Notifications</div>
@@ -886,6 +775,37 @@
 
 </div><!-- /main -->
 
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="changePwdModal">
+  <div class="confirm-modal" style="max-width:400px;width:90%">
+    <div class="confirm-icon">🔑</div>
+    <h3>Change Password</h3>
+    <p style="margin-bottom:16px">Enter your current password, then choose a new one.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;text-align:left">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Current Password</label>
+        <input type="password" id="cpwdCurrent" placeholder="Current password"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">New Password</label>
+        <input type="password" id="cpwdNew" placeholder="New password (min 6 chars)"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Confirm New Password</label>
+        <input type="password" id="cpwdConfirm" placeholder="Confirm new password"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px">
+      </div>
+      <div id="cpwdError" style="font-size:12.5px;color:#ef4444;display:none"></div>
+    </div>
+    <div class="confirm-btns" style="margin-top:20px">
+      <button class="btn btn-secondary" onclick="closeChangePwdModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitChangePwd()">Update Password</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGOUT MODAL -->
 <div class="modal-overlay" id="logoutModal">
   <div class="confirm-modal">
@@ -914,7 +834,104 @@
     settings:  ['Account', 'Settings'],
   };
 
-  let unreadCount = 3;
+  let unreadCount = 0;
+  let notifications = [];
+
+  function parseDateSafe(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function timeAgo(value) {
+    const d = parseDateSafe(value);
+    if (!d) return '—';
+    const diffMs = Date.now() - d.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function isRecent(value, days = 7) {
+    const d = parseDateSafe(value);
+    if (!d) return false;
+    const diffDays = (Date.now() - d.getTime()) / 86400000;
+    return diffDays <= days;
+  }
+
+  function renderNotifications(items) {
+    const list = document.getElementById('notifList');
+    const preview = document.getElementById('notifPreviewList');
+    const emptyHtml = '<div class="notif-item"><div class="notif-icon" style="background:var(--blue-light);">...</div><div class="notif-body"><h4>No notifications yet</h4><p>You will see payslip updates and alerts here.</p><div class="notif-meta"><span class="notif-time">—</span></div></div></div>';
+    if (!items || items.length === 0) {
+      if (list) list.innerHTML = emptyHtml;
+      if (preview) preview.innerHTML = emptyHtml;
+      return;
+    }
+
+    const renderItem = (n, showBtn) => {
+      const dot = n.unread ? '<span class="unread-dot"></span>' : '';
+      const btn = showBtn && n.unread ? `<button class="notif-mark-btn" onclick="markRead('${n.id}')">Mark read</button>` : '';
+      return `
+        <div class="notif-item${n.unread ? ' unread' : ''}" data-id="${n.id}">
+          <div class="notif-icon" style="background:${n.iconBg}">${n.icon}</div>
+          <div class="notif-body">
+            <h4>${n.title}</h4>
+            <p>${n.body}</p>
+            <div class="notif-meta"><span class="notif-time">${timeAgo(n.time)}</span>${dot}</div>
+          </div>
+          ${btn}
+        </div>`;
+    };
+
+    if (list) list.innerHTML = items.map(n => renderItem(n, true)).join('');
+    if (preview) preview.innerHTML = items.slice(0, 2).map(n => renderItem(n, false)).join('');
+  }
+
+  function buildNotificationsFromPayroll(entries) {
+    const items = [];
+    if (!entries || entries.length === 0) return items;
+
+    const latest = entries[0];
+    const run = latest.run || {};
+    const item = latest.item || {};
+    const periodDate = run.end_date || run.run_date || run.created_at;
+    const dateObj = parseDateSafe(periodDate);
+    const monthLabel = dateObj
+      ? dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      : 'recent period';
+
+    const netPay = Number(item.net_pay || 0);
+    if (netPay > 0) {
+      items.push({
+        id: 'salary-' + run.id,
+        icon: 'PAY',
+        iconBg: 'var(--green-light)',
+        title: 'Salary Released — ' + monthLabel,
+        body: 'Your net pay of ₱' + Math.round(netPay).toLocaleString() + ' has been released.',
+        time: periodDate,
+        unread: isRecent(periodDate, 7)
+      });
+    }
+
+    items.push({
+      id: 'payslip-' + run.id,
+      icon: 'DOC',
+      iconBg: 'var(--blue-light)',
+      title: monthLabel + ' Payslip Available',
+      body: 'Your payslip for ' + monthLabel + ' is ready to view and download.',
+      time: periodDate,
+      unread: isRecent(periodDate, 7)
+    });
+
+    return items;
+  }
 
   function showView(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -931,15 +948,23 @@
   }
 
   function markRead(id) {
-    const item = document.querySelector(`[data-id="${id}"]`);
-    if (!item || !item.classList.contains('unread')) return;
-    item.classList.remove('unread');
-    const dot = item.querySelector('.unread-dot');
-    if (dot) dot.remove();
-    const btn = item.querySelector('.notif-mark-btn');
-    if (btn) btn.remove();
-    unreadCount = Math.max(0, unreadCount - 1);
-    updateNotifBadge();
+    const items = document.querySelectorAll(`[data-id="${id}"]`);
+    if (!items.length) return;
+    let changed = false;
+    items.forEach(item => {
+      if (!item.classList.contains('unread')) return;
+      item.classList.remove('unread');
+      const dot = item.querySelector('.unread-dot');
+      if (dot) dot.remove();
+      const btn = item.querySelector('.notif-mark-btn');
+      if (btn) btn.remove();
+      changed = true;
+    });
+    if (changed) {
+      notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+      unreadCount = notifications.filter(n => n.unread).length;
+      updateNotifBadge();
+    }
   }
 
   function markAllRead() {
@@ -950,6 +975,7 @@
       const btn = item.querySelector('.notif-mark-btn');
       if (btn) btn.remove();
     });
+    notifications = notifications.map(n => ({ ...n, unread: false }));
     unreadCount = 0;
     updateNotifBadge();
     showToast('All notifications marked as read.', 'success');
@@ -958,6 +984,8 @@
   function updateNotifBadge() {
     const badge = document.getElementById('navNotifBadge');
     const dot = document.getElementById('topNotifDot');
+    const stat = document.getElementById('statNewNotifs');
+    if (stat) stat.textContent = String(unreadCount);
     if (unreadCount > 0) {
       badge.textContent = unreadCount;
       badge.style.display = '';
@@ -990,6 +1018,40 @@
     if (e.target === e.currentTarget) closeLogout();
   });
 
+  function openChangePwdModal() {
+    document.getElementById('cpwdCurrent').value = '';
+    document.getElementById('cpwdNew').value = '';
+    document.getElementById('cpwdConfirm').value = '';
+    document.getElementById('cpwdError').style.display = 'none';
+    document.getElementById('changePwdModal').classList.add('open');
+  }
+  function closeChangePwdModal() {
+    document.getElementById('changePwdModal').classList.remove('open');
+  }
+  async function submitChangePwd() {
+    const cur  = document.getElementById('cpwdCurrent').value;
+    const nw   = document.getElementById('cpwdNew').value;
+    const conf = document.getElementById('cpwdConfirm').value;
+    const err  = document.getElementById('cpwdError');
+
+    if (!cur || !nw || !conf) { err.textContent = 'All fields are required.'; err.style.display = 'block'; return; }
+    if (nw.length < 6)        { err.textContent = 'New password must be at least 6 characters.'; err.style.display = 'block'; return; }
+    if (nw !== conf)          { err.textContent = 'New passwords do not match.'; err.style.display = 'block'; return; }
+    err.style.display = 'none';
+
+    try {
+      await apiChangePassword(cur, nw);
+      closeChangePwdModal();
+      showToast('Password updated successfully! Please use the new password next time you log in.', 'success');
+    } catch(e) {
+      err.textContent = e.message || 'Failed to update password.';
+      err.style.display = 'block';
+    }
+  }
+  document.getElementById('changePwdModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeChangePwdModal();
+  });
+
   let toastTimer;
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
@@ -1008,10 +1070,10 @@
     if (!user) return;
 
     const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = val; };
-    const fmt = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:0,maximumFractionDigits:0});
-    const fmt2 = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmt  = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:0, maximumFractionDigits:0});
+    const fmt2 = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-    // Update from token immediately (name may be email-based until employee loads)
+    // Populate from token immediately
     const tokenName = user.name || user.email || '';
     const tokenInitials = tokenName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
     set('spName', tokenName); set('spAvatar', tokenInitials);
@@ -1019,54 +1081,245 @@
     set('phName', tokenName); set('profileFullName', tokenName);
     set('welcomeH2', 'Welcome back, ' + tokenName);
 
-    // Try to find this user's employee record
+    // Find this user's employee record
     let emp = null;
     try {
       const emps = await apiListEmployees({ limit: 200 });
       emp = emps.find(e => e.email && e.email.toLowerCase() === (user.email || '').toLowerCase());
     } catch (_) {}
 
-    if (!emp) return; // DB not ready — basic name already populated above
+    if (!emp) return; // no employee record — basic token info shown above
 
     const fullName = [emp.first_name, emp.last_name].filter(Boolean).join(' ') || tokenName;
-    const initials = fullName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    const initials  = fullName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
     const roleLabel = [emp.job_title, emp.department_name].filter(Boolean).join(' · ');
 
+    // Sidebar + topbar
     set('spAvatar', initials); set('spName', fullName); set('spRole', roleLabel);
-    set('topAvatar', initials); set('phAvatar', initials); set('phName', fullName);
-    set('phPos', (emp.job_title || '') + (emp.department_name ? ' · ' + emp.department_name + ' Department' : ''));
+    set('topAvatar', initials);
+
+    // Welcome banner
     set('welcomeH2', 'Welcome back, ' + fullName);
+
+    // Profile hero
+    set('phAvatar', initials); set('phName', fullName);
+    set('phPos', (emp.job_title || '') + (emp.department_name ? ' · ' + emp.department_name + ' Department' : ''));
+    set('profileEmpIdPill', 'Employee ID: ' + (emp.employee_number || emp.id || '—'));
+
+    // Profile details
     set('profileFullName', fullName);
     set('profileEmail', emp.email || '');
     set('profilePosition', emp.job_title || '—');
     set('profileDept', emp.department_name || '—');
-    set('profileEmpId', emp.id || '—');
-    if (emp.status) set('profileStatus', '● ' + (emp.status.charAt(0).toUpperCase() + emp.status.slice(1)));
+    set('profileEmpId', emp.employee_number || emp.id || '—');
+    if (emp.status) set('profileStatus', '● ' + emp.status.charAt(0).toUpperCase() + emp.status.slice(1));
     if (emp.hire_date) {
       const hd = new Date(emp.hire_date + 'T00:00:00');
       set('profileHireDate', hd.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}));
+      set('profileHireDatePill', 'Since ' + hd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}));
     }
 
-    // Salary computation from base_salary
-    const basic = Number(emp.base_salary || 0);
-    if (basic > 0) {
-      const allowances = Math.round(basic * 0.188);  // ~rice+transport+pera+clothing
-      const tax = Math.round(basic * 0.10);
-      const sss = 1350;
-      const philhealth = Math.round(basic * 0.0125);
-      const pagibig = 200;
-      const totalDed = tax + sss + philhealth + pagibig;
-      const gross = basic + allowances;
-      const net = gross - totalDed;
+    // Settings profile row
+    set('settingsProfileSub', fullName + ' · ' + (emp.email || ''));
 
-      set('sbBasicPay', fmt(basic));
+    // ── Salary breakdown from base_salary ──────────────────────────────────
+    const basic       = Number(emp.base_salary || 0);
+    const riceSubsidy = 2000, transport = 2000, pera = 2000, clothing = 6000;
+    const allowances  = riceSubsidy + transport + pera + clothing;
+    const tax         = Math.round(basic * 0.10);
+    const sss         = 1350;
+    const philhealth  = Math.round(basic * 0.0125);
+    const pagibig     = 200;
+    const totalDed    = tax + sss + philhealth + pagibig;
+    const gross       = basic + allowances;
+    const net         = gross - totalDed;
+
+    if (basic > 0) {
+      set('sbBasicPay',      fmt(basic));
+      set('sbRiceSubsidy',   fmt(riceSubsidy));
+      set('sbTransport',     fmt(transport));
+      set('sbPera',          fmt(pera));
+      set('sbClothing',      fmt(clothing));
       set('sbTotalEarnings', fmt(gross));
-      set('sbSummaryGross', fmt2(gross));
-      set('sbSummaryDed', '- ' + fmt2(totalDed));
-      set('sbSummaryNet', fmt2(net));
-      set('salaryHeroVal', fmt2(net));
-      set('heroNetPay', fmt(net));
-      set('statNetPay', fmt(net));
+      set('sbTax',           '- ' + fmt(tax));
+      set('sbSss',           '- ' + fmt(sss));
+      set('sbPhilhealth',    '- ' + fmt(philhealth));
+      set('sbPagibig',       '- ' + fmt(pagibig));
+      set('sbLoan',          '—');
+      set('sbTotalDed',      '- ' + fmt2(totalDed));
+      set('sbSummaryGross',  fmt2(gross));
+      set('sbSummaryDed',    '- ' + fmt2(totalDed));
+      set('sbSummaryNet',    fmt2(net));
+      set('salaryHeroVal',   fmt2(net));
+      set('heroNetPay',      fmt(net));
+      set('statNetPay',      fmt(net));
+
+      // Dynamic salary hero period (current month as fallback)
+      const now      = new Date();
+      const mLabel   = now.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      set('salaryHeroLabel',  mLabel + ' — Net Pay');
+      set('salaryHeroPeriod', 'Pay period: '
+        + firstDay.toLocaleDateString('en-US', {month:'long', day:'numeric'})
+        + '–' + lastDay.getDate()
+        + ' · Released ' + lastDay.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}));
+    }
+
+    // ── Attendance: days present this month ─────────────────────────────────
+    try {
+      const now       = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const endDate   = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      const attRecs   = await apiListAttendance({ employeeId: emp.id, startDate, endDate, limit: 200 });
+      const normStatus = s => String(s || '').toLowerCase();
+      const present   = attRecs.filter(r => {
+        const st = normStatus(r.status);
+        return st === 'present' || st === 'late' || st === 'overtime' || st === 'half-day' || st === 'halfday';
+      }).length;
+      set('statDaysPresent', present > 0 ? present : attRecs.length);
+    } catch(_) { set('statDaysPresent', 0); }
+
+    // ── Payroll: payslips list + history + salary updates ───────────────────
+    try {
+      const runs     = await apiListPayrollRuns();
+      const myEntries = [];
+
+      for (const run of runs) {
+        try {
+          const items  = await apiListPayrollItems(run.id);
+          const myItem = items.find(it => String(it.employee_id) === String(emp.id));
+          if (myItem) myEntries.push({ run, item: myItem });
+        } catch(_) {}
+      }
+
+      // Sort latest first
+      myEntries.sort((a, b) => {
+        const da = new Date(a.run.end_date || a.run.run_date);
+        const db = new Date(b.run.end_date || b.run.run_date);
+        return db - da;
+      });
+
+      notifications = buildNotificationsFromPayroll(myEntries);
+      unreadCount = notifications.filter(n => n.unread).length;
+      renderNotifications(notifications);
+      updateNotifBadge();
+
+      set('statPayslipsCount', myEntries.length);
+
+      if (myEntries.length > 0) {
+        const { run: latestRun, item: latestItem } = myEntries[0];
+        const latestNet     = Number(latestItem.net_pay || 0);
+        const latestEnd     = new Date(latestRun.end_date || latestRun.run_date);
+        const latestStart   = new Date(latestRun.start_date || latestRun.run_date);
+        const latestMLbl    = latestEnd.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+        // Dashboard hero
+        set('heroNetPay', fmt(latestNet));
+        set('statNetPay', fmt(latestNet));
+        const wBanner = document.getElementById('welcomeBannerText');
+        if (wBanner) wBanner.innerHTML = 'Your ' + latestMLbl + ' payslip is ready. Next salary release: <strong style="color:#fff;">Coming soon</strong>.';
+
+        // Salary breakdown from latest payroll item
+        const lGross    = Number(latestItem.gross_pay  || gross);
+        const lTax      = Number(latestItem.taxes       || tax);
+        const lDed      = Number(latestItem.deductions  || (totalDed - tax));
+        const lTotalDed = lTax + lDed;
+        set('salaryHeroLabel',  latestMLbl + ' — Net Pay');
+        set('salaryHeroVal',    fmt2(latestNet));
+        set('salaryHeroPeriod', 'Pay period: '
+          + latestStart.toLocaleDateString('en-US', {month:'long', day:'numeric'})
+          + '–' + latestEnd.getDate()
+          + ' · Released ' + latestEnd.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}));
+        set('sbTotalEarnings', fmt(lGross));
+        set('sbTax',           '- ' + fmt(lTax));
+        set('sbTotalDed',      '- ' + fmt2(lTotalDed));
+        set('sbSummaryGross',  fmt2(lGross));
+        set('sbSummaryDed',    '- ' + fmt2(lTotalDed));
+        set('sbSummaryNet',    fmt2(latestNet));
+
+        // Build payslips list
+        const payslipsList = document.getElementById('payslipsList');
+        if (payslipsList) {
+          if (myEntries.length === 0) {
+            payslipsList.innerHTML = '<p style="padding:22px;text-align:center;color:#94a3b8;font-size:13.5px;">No payslips found.</p>';
+          } else {
+            payslipsList.innerHTML = myEntries.map(({ run, item }) => {
+              const rEnd   = new Date(run.end_date   || run.run_date);
+              const rStart = new Date(run.start_date || run.run_date);
+              const mLbl   = rEnd.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+              const period = 'Pay period: '
+                + rStart.toLocaleDateString('en-US', {month:'short', day:'numeric'})
+                + '–' + rEnd.getDate()
+                + ' · Released ' + rEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+              const netAmt = Number(item.net_pay || 0);
+              const st     = (run.status === 'completed' || run.status === 'released') ? 'released' : 'pending';
+              const slug   = mLbl.replace(/\s+/g, '-');
+              const dlBtn  = st === 'released'
+                ? '<button class="dl-btn" onclick="fakeDownload(\'' + slug + '-Payslip\')">'
+                : '<button class="dl-btn" style="opacity:.4;cursor:not-allowed;" disabled>';
+              return '<div class="payslip-item">'
+                + '<div class="ps-left"><div class="ps-icon">' + (st === 'released' ? '📄' : '⏳') + '</div>'
+                + '<div><div class="ps-month">' + mLbl + '</div><div class="ps-sub">' + period + '</div></div></div>'
+                + '<div class="ps-right">'
+                + '<span class="ps-amount"' + (st !== 'released' ? ' style="color:var(--text-muted);"' : '') + '>'
+                + (st === 'released' ? fmt(netAmt) : 'Pending') + '</span>'
+                + '<span class="ps-badge ' + st + '">' + (st === 'released' ? 'Released' : 'Pending') + '</span>'
+                + dlBtn
+                + '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">'
+                + '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>'
+                + '<polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download'
+                + '</button></div></div>';
+            }).join('');
+          }
+        }
+
+        // Build payroll history table
+        const historyTbody = document.getElementById('historyTbody');
+        if (historyTbody) {
+          if (myEntries.length === 0) {
+            historyTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:22px;font-size:13.5px;">No payroll records found.</td></tr>';
+          } else {
+            historyTbody.innerHTML = myEntries.map(({ run, item }) => {
+              const rEnd     = new Date(run.end_date || run.run_date);
+              const mLbl     = rEnd.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+              const netAmt   = Number(item.net_pay   || 0);
+              const grossAmt = Number(item.gross_pay || 0);
+              const basicAmt = Number(item.basic_pay || emp.base_salary || 0);
+              const allowAmt = grossAmt > basicAmt ? grossAmt - basicAmt : 0;
+              const dedAmt   = grossAmt - netAmt;
+              const st       = (run.status === 'completed' || run.status === 'released') ? 'released' : 'pending';
+              const relDate  = rEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+              return '<tr>'
+                + '<td><strong>' + mLbl + '</strong></td>'
+                + '<td>' + fmt(basicAmt) + '</td>'
+                + '<td>' + fmt(allowAmt) + '</td>'
+                + '<td>' + fmt(dedAmt) + '</td>'
+                + '<td style="font-weight:700;color:var(--blue);">' + fmt(netAmt) + '</td>'
+                + '<td><span class="badge ' + st + '">' + (st === 'released' ? 'Released' : 'Pending') + '</span></td>'
+                + '<td>' + relDate + '</td>'
+                + '</tr>';
+            }).join('');
+          }
+        }
+      } else {
+        // No payroll data found
+        set('statPayslipsCount', 0);
+        notifications = [];
+        unreadCount = 0;
+        renderNotifications([]);
+        updateNotifBadge();
+        const payslipsList = document.getElementById('payslipsList');
+        if (payslipsList) payslipsList.innerHTML = '<p style="padding:22px;text-align:center;color:#94a3b8;font-size:13.5px;">No payslips found. Payroll has not been processed yet.</p>';
+        const historyTbody = document.getElementById('historyTbody');
+        if (historyTbody) historyTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:22px;font-size:13.5px;">No payroll records found.</td></tr>';
+      }
+    } catch(_) {
+      set('statPayslipsCount', 0);
+      notifications = [];
+      unreadCount = 0;
+      renderNotifications([]);
+      updateNotifBadge();
     }
   })();
 </script>

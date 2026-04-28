@@ -1,0 +1,56 @@
+{
+  "employees": [
+    {
+      "id": "mem_3",
+      "user_id": null,
+      "department_id": null,
+      "department_name": "Legal",
+      "first_name": "Sam",
+      "last_name": "Go",
+      "email": "sam@gmail.com",
+      "status": "active",
+      "hire_date": "2026-04-28",
+      "job_title": "wadwad",
+      "base_salary": 34000,
+      "hourly_rate": 212.5,
+      "overtime_multiplier": 1.5,
+      "created_at": "2026-04-28T17:23:45.962Z",
+      "updated_at": "2026-04-28T17:23:45.962Z"
+    },
+    {
+      "id": "mem_2",
+      "user_id": null,
+      "department_id": null,
+      "department_name": "Operations",
+      "first_name": "Loius",
+      "last_name": "Gabo",
+      "email": "gabo@gmail.com",
+      "status": "active",
+      "hire_date": "2026-04-28",
+      "job_title": "Test",
+      "base_salary": 40000,
+      "hourly_rate": 250,
+      "overtime_multiplier": 1.5,
+      "created_at": "2026-04-28T16:25:36.694Z",
+      "updated_at": "2026-04-28T16:25:36.694Z"
+    },
+    {
+      "id": "mem_1",
+      "user_id": null,
+      "department_id": null,
+      "department_name": "HR",
+      "first_name": "Robert",
+      "last_name": "Laqui",
+      "email": "terquinlaqui@gmail.com",
+      "status": "active",
+      "hire_date": "2026-04-28",
+      "job_title": "Test",
+      "base_salary": null,
+      "hourly_rate": null,
+      "overtime_multiplier": 1.5,
+      "created_at": "2026-04-28T16:11:12.149Z",
+      "updated_at": "2026-04-28T16:11:12.149Z"
+    }
+  ],
+  "nextId": 4
+}

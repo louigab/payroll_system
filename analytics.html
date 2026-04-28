@@ -342,7 +342,7 @@
       // Group runs by year-month
       const monthly = {};
       for (const run of runs) {
-        const ym = (run.created_at || run.pay_period_start || '').slice(0, 7);
+        const ym = (run.end_date || run.start_date || run.run_date || run.created_at || '').slice(0, 7);
         if (!ym) continue;
         if (!monthly[ym]) monthly[ym] = { gross: 0, net: 0, ded: 0, count: 0 };
 

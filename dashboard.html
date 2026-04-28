@@ -719,30 +719,14 @@
               <p>System log</p>
             </div>
           </div>
-          <div class="activity-list">
+          <div class="activity-list" id="activityList">
             <div class="activity-item">
-              <div class="activity-icon" style="background:var(--green-light)">✅</div>
+              <div class="activity-icon" style="background:var(--blue-light)">...</div>
               <div class="activity-body">
-                <strong>Payslips Generated</strong>
-                <p>103 payslips successfully generated for April 2025.</p>
+                <strong>Loading activity</strong>
+                <p>Fetching recent system events...</p>
               </div>
-              <div class="activity-time">2h ago</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon" style="background:var(--blue-light)">👤</div>
-              <div class="activity-body">
-                <strong>New Employee Added</strong>
-                <p>Jane Cooper was onboarded to the Finance department.</p>
-              </div>
-              <div class="activity-time">5h ago</div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon" style="background:var(--amber-light)">⚠️</div>
-              <div class="activity-body">
-                <strong>Compliance Flag</strong>
-                <p>2 employees missing BIR TIN updates — action required.</p>
-              </div>
-              <div class="activity-time">Yesterday</div>
+              <div class="activity-time">—</div>
             </div>
           </div>
         </div>
@@ -851,6 +835,115 @@
     return '₱' + n;
   }
   function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+  function parseDateSafe(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function timeAgo(value) {
+    const d = parseDateSafe(value);
+    if (!d) return '—';
+    const diffMs = Date.now() - d.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function monthLabel(value) {
+    const d = parseDateSafe(value);
+    return d ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'recent period';
+  }
+
+  async function buildRecentActivity(employees, runs) {
+    const list = document.getElementById('activityList');
+    if (!list) return;
+
+    const activities = [];
+
+    if (runs && runs.length > 0) {
+      const sortedRuns = [...runs].sort((a, b) => {
+        const da = parseDateSafe(a.run_date || a.end_date || a.created_at);
+        const db = parseDateSafe(b.run_date || b.end_date || b.created_at);
+        return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+      });
+      const run = sortedRuns[0];
+      let itemCount = 0;
+      try {
+        const items = await apiListPayrollItems(run.id);
+        itemCount = items ? items.length : 0;
+      } catch (_) {}
+
+      const periodDate = run.end_date || run.start_date || run.run_date || run.created_at;
+      const countLabel = itemCount > 0
+        ? itemCount + ' payslip' + (itemCount === 1 ? '' : 's')
+        : 'Payroll';
+      activities.push({
+        time: periodDate,
+        icon: 'OK',
+        bg: 'var(--green-light)',
+        title: 'Payslips Generated',
+        body: countLabel + ' generated for ' + monthLabel(periodDate) + '.'
+      });
+    }
+
+    if (employees && employees.length > 0) {
+      const sortedEmps = [...employees].sort((a, b) => {
+        const da = parseDateSafe(a.created_at || a.hire_date);
+        const db = parseDateSafe(b.created_at || b.hire_date);
+        return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+      });
+      const emp = sortedEmps[0];
+      const dept = emp.department_name || emp.dept || 'the team';
+      activities.push({
+        time: emp.created_at || emp.hire_date,
+        icon: 'EMP',
+        bg: 'var(--blue-light)',
+        title: 'New Employee Added',
+        body: empFullName(emp) + ' was added to ' + dept + '.'
+      });
+    }
+
+    if (employees && employees.length > 0) {
+      const missingSalary = employees.filter(e => e.base_salary == null).length;
+      if (missingSalary > 0) {
+        activities.push({
+          time: new Date().toISOString(),
+          icon: '!',
+          bg: 'var(--amber-light)',
+          title: 'Compensation Missing',
+          body: missingSalary + ' employee' + (missingSalary === 1 ? '' : 's') + ' missing base salary.'
+        });
+      }
+    }
+
+    if (activities.length === 0) {
+      list.innerHTML = '<div class="activity-item"><div class="activity-icon" style="background:var(--blue-light)">...</div><div class="activity-body"><strong>No recent activity</strong><p>Create payroll runs or add employees to see updates here.</p></div><div class="activity-time">—</div></div>';
+      return;
+    }
+
+    activities.sort((a, b) => {
+      const da = parseDateSafe(a.time);
+      const db = parseDateSafe(b.time);
+      return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+    });
+
+    list.innerHTML = activities.slice(0, 6).map(a => {
+      return `
+        <div class="activity-item">
+          <div class="activity-icon" style="background:${a.bg}">${a.icon}</div>
+          <div class="activity-body">
+            <strong>${a.title}</strong>
+            <p>${a.body}</p>
+          </div>
+          <div class="activity-time">${timeAgo(a.time)}</div>
+        </div>`;
+    }).join('');
+  }
 
   // ── Dynamic donut chart ──
   function buildDonutChart(employees) {
@@ -912,7 +1005,7 @@
     // Aggregate payroll runs by month
     const byMonth = {};
     runs.forEach(r => {
-      const mo = (r.period_start || r.created_at || '').slice(0,7);
+      const mo = (r.end_date || r.start_date || r.run_date || r.created_at || '').slice(0,7);
       if (mo) byMonth[mo] = (byMonth[mo] || 0) + Number(r.gross_pay || r.total_gross || 0);
     });
     // Fallback: if no runs but we have employees, show current month from base salaries
@@ -993,8 +1086,12 @@
       const records = await apiListAttendance({ startDate: todayStr, endDate: todayStr, limit: 200 });
       const empMap = {};
       allEmployees.forEach(e => empMap[e.id] = e);
-      const presentCount = records.filter(r => r.status === 'present').length;
-      const lateCount    = records.filter(r => r.status === 'late').length;
+      const normStatus = s => String(s || '').toLowerCase();
+      const presentCount = records.filter(r => {
+        const st = normStatus(r.status);
+        return st === 'present' || st === 'late' || st === 'overtime' || st === 'half-day' || st === 'halfday';
+      }).length;
+      const lateCount    = records.filter(r => normStatus(r.status) === 'late').length;
       set('statPresent', records.length > 0 ? presentCount : 0);
       set('statLate',    records.length > 0 ? lateCount    : 0);
       const attendBody = document.getElementById('attendanceTbody');
@@ -1005,11 +1102,12 @@
               const name = empFullName(emp) || 'Employee #' + rec.employee_id;
               const ti = rec.time_in  ? rec.time_in.slice(0,5)  : '—';
               const to = rec.time_out ? rec.time_out.slice(0,5) : '—';
-              const st = rec.status || 'present';
-              const badgeCls = st === 'present' ? 'present' : st === 'late' ? 'late' : 'absent';
+              const stRaw = rec.status || 'present';
+              const st = normStatus(stRaw);
+              const badgeCls = st === 'late' ? 'late' : st === 'absent' ? 'absent' : 'present';
               return `<tr>
                 <td><div class="emp-cell"><div class="emp-av" style="background:${empColor(rec.employee_id)}">${empInitials(emp)}</div><span class="emp-nm">${name}</span></div></td>
-                <td>${ti}</td><td>${to}</td><td><span class="badge ${badgeCls}">${st.charAt(0).toUpperCase()+st.slice(1)}</span></td>
+                <td>${ti}</td><td>${to}</td><td><span class="badge ${badgeCls}">${stRaw.charAt(0).toUpperCase()+stRaw.slice(1)}</span></td>
               </tr>`;
             }).join('')
           : '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No attendance records for today</td></tr>';
@@ -1020,8 +1118,10 @@
     try {
       const runs = await apiListPayrollRuns({ limit: 50 });
       buildBarChart(runs, allEmployees);
+      await buildRecentActivity(allEmployees, runs);
     } catch(_) {
       buildBarChart([], allEmployees);
+      await buildRecentActivity(allEmployees, []);
     }
   })();
 </script>

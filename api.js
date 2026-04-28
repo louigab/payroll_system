@@ -52,13 +52,16 @@ async function apiFetch(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
   Object.assign(headers, options.headers || {});
 
-  const res = await fetch(API_BASE + path, { ...options, headers });
+  const res = await fetch(API_BASE + path, { ...options, headers, cache: 'no-store' });
 
   if (res.status === 401) {
     _clearSession();
     window.location.href = 'login.html';
     return null;
   }
+
+  // 304 Not Modified (avoid cached empty bodies)
+  if (res.status === 304) return null;
 
   // 204 No Content
   if (res.status === 204) return null;
@@ -128,6 +131,11 @@ async function apiUpdateEmployee(id, data) {
 
 async function apiDeleteEmployee(id) {
   await apiFetch('/employees/' + id, { method: 'DELETE' });
+}
+
+async function apiProvisionLogin(id) {
+  const body = await apiFetch('/employees/' + id + '/provision-login', { method: 'POST' });
+  return body ? body.data : null;
 }
 
 // ── Attendance ──────────────────────────────────────────────────────────────
@@ -224,6 +232,16 @@ async function apiCreateTaxRate(data) {
   const body = await apiFetch('/tax/rates', {
     method: 'POST',
     body: JSON.stringify(data)
+  });
+  return body ? body.data : null;
+}
+
+// ── Auth helpers ─────────────────────────────────────────────────────────────
+
+async function apiChangePassword(currentPassword, newPassword) {
+  const body = await apiFetch('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword })
   });
   return body ? body.data : null;
 }

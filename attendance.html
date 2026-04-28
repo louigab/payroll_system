@@ -702,15 +702,15 @@ function renderList() {
       </td>
       <td>
         <input class="time-input" type="time" value="${r.timeIn}" id="ti_${emp.id}"
-          ${r.status==='Absent'?'disabled':''} onchange="onTimeChange(${emp.id})" />
+          ${r.status==='Absent'?'disabled':''} onchange="onTimeChange('${emp.id}')" />
       </td>
       <td>
         <input class="time-input" type="time" value="${r.timeOut}" id="to_${emp.id}"
-          ${r.status==='Absent'?'disabled':''} onchange="onTimeChange(${emp.id})" />
+          ${r.status==='Absent'?'disabled':''} onchange="onTimeChange('${emp.id}')" />
       </td>
       <td>
         <select class="status-select s-${r.status.toLowerCase().replace('-','')}" id="st_${emp.id}"
-          onchange="onStatusChange(${emp.id})">
+          onchange="onStatusChange('${emp.id}')">
           <option ${r.status==='Present'?'selected':''}>Present</option>
           <option ${r.status==='Late'?'selected':''}>Late</option>
           <option ${r.status==='Absent'?'selected':''}>Absent</option>
@@ -723,7 +723,7 @@ function renderList() {
         ${deductTag}${otTag}
       </td>
       <td>
-        <button class="dtr-btn" onclick="openDTR(${emp.id})">
+        <button class="dtr-btn" onclick="openDTR('${emp.id}')">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
           View DTR
         </button>
@@ -837,14 +837,14 @@ async function saveAll() {
     if (!r) continue;
     try {
       await apiCreateAttendance({
-        employee_id:   emp.id,
-        work_date:     currentDate,
-        time_in:       r.timeIn  || null,
-        time_out:      r.timeOut || null,
+        employeeId:    emp.id,
+        attendanceDate: currentDate,
+        timeIn:        r.timeIn  || null,
+        timeOut:       r.timeOut || null,
         status:        r.status,
-        late_minutes:  r.lateMin,
-        hours_worked:  r.hoursWorked,
-        ot_hours:      r.otHours
+        lateMinutes:   r.lateMin,
+        hoursWorked:   r.hoursWorked,
+        otHours:       r.otHours
       });
       saved++;
     } catch(_) { failed++; }
@@ -910,7 +910,7 @@ async function onDtrMonthChange() {
   try {
     const records = await apiListAttendance({ startDate, endDate, limit: 500 });
     records.forEach(rec => {
-      const ds = rec.date ? rec.date.slice(0,10) : null;
+      const ds = (rec.attendance_date || rec.date || '').slice(0,10) || null;
       if (!ds) return;
       if (!attendance[ds]) attendance[ds] = {};
       attendance[ds][rec.employee_id] = {

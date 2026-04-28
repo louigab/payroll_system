@@ -1,9 +1,32 @@
 const { query } = require("../db");
 const { badRequest, notFound } = require("../utils/errors");
 const { recordAuditLog } = require("./audit");
+const fs = require("fs");
+const path = require("path");
 
-// ─── In-memory fallback store (used when PostgreSQL is unavailable) ───
-const mem = { employees: [], nextId: 1 };
+// ─── Persistent in-memory fallback store ───────────────────────────────────
+// Employees are saved to a JSON file so they survive server restarts.
+const STORE_PATH = path.join(__dirname, "../../data/employees_store.json");
+
+function loadStore() {
+  try {
+    if (fs.existsSync(STORE_PATH)) {
+      const raw = fs.readFileSync(STORE_PATH, "utf8");
+      return JSON.parse(raw);
+    }
+  } catch (_) {}
+  return { employees: [], nextId: 1 };
+}
+
+function saveStore() {
+  try {
+    const dir = path.dirname(STORE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(STORE_PATH, JSON.stringify(mem, null, 2), "utf8");
+  } catch (_) {}
+}
+
+const mem = loadStore();
 
 function isDbDown(err) {
   if (!err) return false;
@@ -164,6 +187,7 @@ async function createEmployee(payload, actorUserId) {
       updated_at: new Date().toISOString()
     };
     mem.employees.unshift(employee);
+    saveStore();
     return employee;
   }
 }
@@ -242,6 +266,7 @@ async function updateEmployee(id, payload, actorUserId) {
     if (payload.status    !== undefined) emp.status     = payload.status;
     if (payload.hireDate  !== undefined) emp.hire_date  = payload.hireDate;
     emp.updated_at = new Date().toISOString();
+    saveStore();
     return emp;
   }
 }
@@ -262,6 +287,7 @@ async function deleteEmployee(id, actorUserId) {
     const idx = mem.employees.findIndex(e => String(e.id) === String(id));
     if (idx === -1) throw notFound("Employee not found", "employee_not_found");
     mem.employees.splice(idx, 1);
+    saveStore();
   }
 }
 

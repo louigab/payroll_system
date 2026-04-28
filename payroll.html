@@ -253,20 +253,34 @@ async function processAllPayroll() {
     if (employees.length === 0) return alert('Fetch data first!');
 
     try {
-      // Create a pay period if needed
+      // Resolve an open pay period or create a new one
       let periodId = currentPeriod && currentPeriod.id;
+      if (!periodId) {
+        const openPeriods = await apiListPayPeriods({ status: 'open' });
+        if (openPeriods && openPeriods.length > 0) {
+          currentPeriod = openPeriods[0];
+          periodId = currentPeriod.id;
+        }
+      }
       if (!periodId) {
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         const endDate   = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        const period = await apiCreatePayPeriod({ start_date: startDate, end_date: endDate, status: 'open' });
+        const period = await apiCreatePayPeriod({ startDate, endDate, status: 'open' });
+        if (!period || !period.id) {
+          throw new Error('Could not create pay period');
+        }
         currentPeriod = period;
         periodId = period.id;
       }
+      if (!periodId) {
+        throw new Error('payPeriodId is required');
+      }
 
-      const run = await apiCreatePayrollRun({ payPeriodId: periodId, runDate: new Date().toISOString().split('T')[0] });
+      const result = await apiCreatePayrollRun({ payPeriodId: periodId, runDate: new Date().toISOString().split('T')[0] });
+      const run = result && result.run ? result.run : result;
       currentRun = run;
-      alert('Payroll run created! Run ID: ' + run.id);
+      alert('Payroll run created! Run ID: ' + (run && run.id ? run.id : '—'));
       await fetchData();
     } catch(e) {
       alert('Failed to process payroll: ' + e.message);

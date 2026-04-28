@@ -6,7 +6,10 @@ const {
   updateEmployee,
   deleteEmployee
 } = require("../services/employees");
+const { createUser } = require("../data/users");
 const { badRequest } = require("../utils/errors");
+
+const DEFAULT_STAFF_PASSWORD = "password123";
 
 const router = express.Router();
 
@@ -68,7 +71,15 @@ router.post("/", async (req, res, next) => {
       overtimeMultiplier:  b.overtimeMultiplier  || b.overtime_multiplier,
     };
     const employee = await createEmployee(payload, req.user && req.user.sub);
-    res.status(201).json({ data: employee });
+
+    // Auto-provision a staff portal account for the employee
+    let tempPassword = null;
+    if (payload.email) {
+      const { created } = createUser(payload.email, DEFAULT_STAFF_PASSWORD, ["staff"]);
+      if (created) tempPassword = DEFAULT_STAFF_PASSWORD;
+    }
+
+    res.status(201).json({ data: { ...employee, tempPassword } });
   } catch (error) {
     next(error);
   }
@@ -87,6 +98,27 @@ router.delete("/:id", async (req, res, next) => {
   try {
     await deleteEmployee(req.params.id, req.user && req.user.sub);
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Provision (or reset) a staff portal login for an existing employee
+router.post("/:id/provision-login", async (req, res, next) => {
+  try {
+    const employee = await getEmployeeById(req.params.id);
+    if (!employee || !employee.email) {
+      return next(badRequest("Employee must have an email address to create a login", "no_email"));
+    }
+    const { createUser, findUserByEmail, updateUserPassword } = require("../data/users");
+    const existing = findUserByEmail(employee.email);
+    if (existing) {
+      // Reset password to default
+      updateUserPassword(employee.email, DEFAULT_STAFF_PASSWORD);
+      return res.json({ data: { email: employee.email, tempPassword: DEFAULT_STAFF_PASSWORD, reset: true } });
+    }
+    createUser(employee.email, DEFAULT_STAFF_PASSWORD, ["staff"]);
+    res.json({ data: { email: employee.email, tempPassword: DEFAULT_STAFF_PASSWORD, reset: false } });
   } catch (error) {
     next(error);
   }
