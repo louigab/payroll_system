@@ -20,6 +20,20 @@
   ],
   "payroll_items": [
     {
+      "id": "mem_item_4",
+      "payroll_run_id": "mem_run_1",
+      "employee_id": "mem_5",
+      "base_pay": 30000,
+      "gross_pay": 30000,
+      "taxes": 0,
+      "tax_amount": 0,
+      "deductions": 0,
+      "net_pay": 30000,
+      "ot_hours": 0,
+      "allowances": 0,
+      "created_at": "2026-04-28T17:36:41.375Z"
+    },
+    {
       "id": "mem_item_3",
       "payroll_run_id": "mem_run_1",
       "employee_id": "mem_4",
@@ -64,5 +78,5 @@
   ],
   "nextPayPeriodId": 2,
   "nextPayrollRunId": 2,
-  "nextPayrollItemId": 4
+  "nextPayrollItemId": 5
 }

@@ -1,6 +1,23 @@
 {
   "employees": [
     {
+      "id": "mem_5",
+      "user_id": null,
+      "department_id": null,
+      "department_name": "Administration",
+      "first_name": "Cj",
+      "last_name": "Sacdalan",
+      "email": "cj@gmail.com",
+      "status": "active",
+      "hire_date": "2026-04-28",
+      "job_title": "Test",
+      "base_salary": 30000,
+      "hourly_rate": 187.5,
+      "overtime_multiplier": 1.5,
+      "created_at": "2026-04-28T17:36:37.610Z",
+      "updated_at": "2026-04-28T17:36:37.810Z"
+    },
+    {
       "id": "mem_4",
       "user_id": null,
       "department_id": null,
@@ -52,5 +69,5 @@
       "updated_at": "2026-04-28T16:11:12.149Z"
     }
   ],
-  "nextId": 5
+  "nextId": 6
 }
