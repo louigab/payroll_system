@@ -56,6 +56,24 @@ function requireField(value, fieldName) {
   }
 }
 
+function normalizeEmployeePayload(payload) {
+  const p = payload || {};
+  return {
+    firstName: p.firstName || p.first_name,
+    lastName: p.lastName || p.last_name,
+    email: p.email,
+    hireDate: p.hireDate || p.hire_date,
+    status: p.status,
+    departmentId: p.departmentId || p.department_id,
+    departmentName: p.departmentName || p.department_name,
+    jobTitle: p.jobTitle || p.job_title,
+    baseSalary: p.baseSalary || p.base_salary,
+    userId: p.userId || p.user_id,
+    hourlyRate: p.hourlyRate || p.hourly_rate || (p.base_salary ? Number(p.base_salary) / 160 : undefined),
+    overtimeMultiplier: p.overtimeMultiplier || p.overtime_multiplier
+  };
+}
+
 async function listEmployees(filters) {
   try {
     const conditions = [];
@@ -131,12 +149,13 @@ async function getEmployeeById(id) {
 }
 
 async function createEmployee(payload, actorUserId) {
-  requireField(payload.firstName, "firstName");
-  requireField(payload.lastName, "lastName");
-  requireField(payload.hireDate, "hireDate");
+  const data = normalizeEmployeePayload(payload);
+  requireField(data.firstName, "firstName");
+  requireField(data.lastName, "lastName");
+  requireField(data.hireDate, "hireDate");
 
-  const hourlyRate = parseNumber(payload.hourlyRate, "hourlyRate");
-  const overtimeMultiplier = parseNumber(payload.overtimeMultiplier, "overtimeMultiplier");
+  const hourlyRate = parseNumber(data.hourlyRate, "hourlyRate");
+  const overtimeMultiplier = parseNumber(data.overtimeMultiplier, "overtimeMultiplier");
 
   try {
     const result = await query(
@@ -146,13 +165,13 @@ async function createEmployee(payload, actorUserId) {
         ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 0), COALESCE($9, 1.5))
        RETURNING *`,
       [
-        payload.userId || null,
-        payload.departmentId || null,
-        payload.firstName,
-        payload.lastName,
-        normalizeEmail(payload.email),
-        payload.status || "active",
-        payload.hireDate,
+        data.userId || null,
+        data.departmentId || null,
+        data.firstName,
+        data.lastName,
+        normalizeEmail(data.email),
+        data.status || "active",
+        data.hireDate,
         hourlyRate,
         overtimeMultiplier
       ]
@@ -171,16 +190,16 @@ async function createEmployee(payload, actorUserId) {
     // In-memory fallback
     const employee = {
       id: "mem_" + (mem.nextId++),
-      user_id: payload.userId || null,
-      department_id: payload.departmentId || null,
-      department_name: payload.departmentName || null,
-      first_name: payload.firstName,
-      last_name: payload.lastName,
-      email: normalizeEmail(payload.email),
-      status: payload.status || "active",
-      hire_date: payload.hireDate,
-      job_title: payload.jobTitle || null,
-      base_salary: payload.baseSalary || null,
+      user_id: data.userId || null,
+      department_id: data.departmentId || null,
+      department_name: data.departmentName || null,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: normalizeEmail(data.email),
+      status: data.status || "active",
+      hire_date: data.hireDate,
+      job_title: data.jobTitle || null,
+      base_salary: data.baseSalary || null,
       hourly_rate: hourlyRate,
       overtime_multiplier: overtimeMultiplier || 1.5,
       created_at: new Date().toISOString(),
@@ -193,43 +212,44 @@ async function createEmployee(payload, actorUserId) {
 }
 
 async function updateEmployee(id, payload, actorUserId) {
+  const data = normalizeEmployeePayload(payload);
   const fields = [];
   const values = [];
 
-  if (payload.firstName !== undefined) {
-    values.push(payload.firstName);
+  if (data.firstName !== undefined) {
+    values.push(data.firstName);
     fields.push(`first_name = $${values.length}`);
   }
-  if (payload.lastName !== undefined) {
-    values.push(payload.lastName);
+  if (data.lastName !== undefined) {
+    values.push(data.lastName);
     fields.push(`last_name = $${values.length}`);
   }
-  if (payload.email !== undefined) {
-    values.push(normalizeEmail(payload.email));
+  if (data.email !== undefined) {
+    values.push(normalizeEmail(data.email));
     fields.push(`email = $${values.length}`);
   }
-  if (payload.departmentId !== undefined) {
-    values.push(payload.departmentId || null);
+  if (data.departmentId !== undefined) {
+    values.push(data.departmentId || null);
     fields.push(`department_id = $${values.length}`);
   }
-  if (payload.userId !== undefined) {
-    values.push(payload.userId || null);
+  if (data.userId !== undefined) {
+    values.push(data.userId || null);
     fields.push(`user_id = $${values.length}`);
   }
-  if (payload.status !== undefined) {
-    values.push(payload.status);
+  if (data.status !== undefined) {
+    values.push(data.status);
     fields.push(`status = $${values.length}`);
   }
-  if (payload.hireDate !== undefined) {
-    values.push(payload.hireDate);
+  if (data.hireDate !== undefined) {
+    values.push(data.hireDate);
     fields.push(`hire_date = $${values.length}`);
   }
-  if (payload.hourlyRate !== undefined) {
-    values.push(parseNumber(payload.hourlyRate, "hourlyRate"));
+  if (data.hourlyRate !== undefined) {
+    values.push(parseNumber(data.hourlyRate, "hourlyRate"));
     fields.push(`hourly_rate = COALESCE($${values.length}, hourly_rate)`);
   }
-  if (payload.overtimeMultiplier !== undefined) {
-    values.push(parseNumber(payload.overtimeMultiplier, "overtimeMultiplier"));
+  if (data.overtimeMultiplier !== undefined) {
+    values.push(parseNumber(data.overtimeMultiplier, "overtimeMultiplier"));
     fields.push(`overtime_multiplier = COALESCE($${values.length}, overtime_multiplier)`);
   }
 
@@ -260,11 +280,11 @@ async function updateEmployee(id, payload, actorUserId) {
     // In-memory fallback
     const emp = mem.employees.find(e => String(e.id) === String(id));
     if (!emp) throw notFound("Employee not found", "employee_not_found");
-    if (payload.firstName !== undefined) emp.first_name = payload.firstName;
-    if (payload.lastName  !== undefined) emp.last_name  = payload.lastName;
-    if (payload.email     !== undefined) emp.email      = normalizeEmail(payload.email);
-    if (payload.status    !== undefined) emp.status     = payload.status;
-    if (payload.hireDate  !== undefined) emp.hire_date  = payload.hireDate;
+    if (data.firstName !== undefined) emp.first_name = data.firstName;
+    if (data.lastName  !== undefined) emp.last_name  = data.lastName;
+    if (data.email     !== undefined) emp.email      = normalizeEmail(data.email);
+    if (data.status    !== undefined) emp.status     = data.status;
+    if (data.hireDate  !== undefined) emp.hire_date  = data.hireDate;
     emp.updated_at = new Date().toISOString();
     saveStore();
     return emp;
