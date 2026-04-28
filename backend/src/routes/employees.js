@@ -51,7 +51,23 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const employee = await createEmployee(req.body || {}, req.user && req.user.sub);
+    const b = req.body || {};
+    // Accept both snake_case (from frontend) and camelCase (from API clients)
+    const payload = {
+      firstName:           b.firstName           || b.first_name,
+      lastName:            b.lastName            || b.last_name,
+      email:               b.email,
+      hireDate:            b.hireDate            || b.hire_date,
+      status:              b.status,
+      departmentId:        b.departmentId        || b.department_id,
+      departmentName:      b.departmentName      || b.department_name,
+      jobTitle:            b.jobTitle            || b.job_title,
+      baseSalary:          b.baseSalary          || b.base_salary,
+      userId:              b.userId              || b.user_id,
+      hourlyRate:          b.hourlyRate          || b.hourly_rate    || (b.base_salary ? Number(b.base_salary) / 160 : undefined),
+      overtimeMultiplier:  b.overtimeMultiplier  || b.overtime_multiplier,
+    };
+    const employee = await createEmployee(payload, req.user && req.user.sub);
     res.status(201).json({ data: employee });
   } catch (error) {
     next(error);

@@ -159,27 +159,69 @@
   </div>
 </div>
 
+<script src="api.js"></script>
 <script>
-let employees = [];
+requireAuth();
 
-// 1. Fetching Logic (Mocking the data retrieval)
-function fetchData() {
-    employees = [
-        { id: 101, name: "Guy Hawkins", basic: 45000, otHours: 10, allowance: 2500, tax: 4500, sss: 1200, status: "Pending" },
-        { id: 102, name: "Floyd Miles", basic: 38000, otHours: 5, allowance: 1500, tax: 3200, sss: 1200, status: "Pending" },
-        { id: 103, name: "Jane Cooper", basic: 55000, otHours: 0, allowance: 5000, tax: 6800, sss: 1200, status: "Pending" }
-    ];
+let employees = [];
+let currentPeriod = null;
+let currentRun = null;
+
+// ── Load payroll data from API ───────────────────────────────────────────────
+async function fetchData() {
+  const btn = document.querySelector('.btn-outline');
+  if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
+
+  try {
+    // Load employees
+    const empList = await apiListEmployees({ limit: 200 });
+
+    // Load latest payroll run items if a run exists
+    const runs = await apiListPayrollRuns();
+    let items = [];
+    if (runs && runs.length > 0) {
+      currentRun = runs[0];
+      items = await apiListPayrollItems(currentRun.id);
+    }
+
+    // Merge: match items to employees by employee_id
+    const itemMap = {};
+    items.forEach(item => { itemMap[item.employee_id] = item; });
+
+    employees = empList.map(emp => {
+      const item = itemMap[emp.id] || {};
+      return {
+        id: emp.id,
+        name: [emp.first_name, emp.last_name].filter(Boolean).join(' ') || '—',
+        basic:     Number(item.base_pay     || emp.base_salary || 0),
+        otHours:   Number(item.ot_hours     || 0),
+        allowance: Number(item.allowances   || 0),
+        tax:       Number(item.tax_amount   || 0),
+        sss:       Number(item.deductions   || 0),
+        grossPay:  Number(item.gross_pay    || 0),
+        netPay:    Number(item.net_pay      || 0),
+        status:    item.id ? 'Processed' : 'Pending'
+      };
+    });
+
     renderTable();
+  } catch(e) {
+    alert('Failed to load payroll data: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = 'Fetch Data'; btn.disabled = false; }
+  }
 }
 
-// 2. Compute Salary Logic
+// ── Compute Salary (used when no processed item exists) ──────────────────────
 function calculateSalary(emp) {
+    if (emp.grossPay) {
+      return { otPay: emp.otHours * ((emp.basic/22)/8*1.25), gross: emp.grossPay, totalDed: emp.tax + emp.sss, net: emp.netPay };
+    }
     const hourlyRate = (emp.basic / 22) / 8;
     const otPay = emp.otHours * (hourlyRate * 1.25);
     const gross = emp.basic + otPay + emp.allowance;
     const totalDed = emp.tax + emp.sss;
     const net = gross - totalDed;
-    
     return { otPay, gross, totalDed, net };
 }
 
@@ -206,12 +248,29 @@ function renderTable() {
     updateStats();
 }
 
-// 3. Overall Payroll Processing & Stats
-function processAllPayroll() {
-    if(employees.length === 0) return alert("Fetch data first!");
-    employees.forEach(e => e.status = "Processed");
-    updateStats();
-    alert("Payroll Record Generated & Status Updated to 'Processed'");
+// ── Overall Payroll Processing ───────────────────────────────────────────────
+async function processAllPayroll() {
+    if (employees.length === 0) return alert('Fetch data first!');
+
+    try {
+      // Create a pay period if needed
+      let periodId = currentPeriod && currentPeriod.id;
+      if (!periodId) {
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const endDate   = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        const period = await apiCreatePayPeriod({ start_date: startDate, end_date: endDate, status: 'open' });
+        currentPeriod = period;
+        periodId = period.id;
+      }
+
+      const run = await apiCreatePayrollRun({ payPeriodId: periodId, runDate: new Date().toISOString().split('T')[0] });
+      currentRun = run;
+      alert('Payroll run created! Run ID: ' + run.id);
+      await fetchData();
+    } catch(e) {
+      alert('Failed to process payroll: ' + e.message);
+    }
 }
 
 function updateStats() {
@@ -220,15 +279,15 @@ function updateStats() {
         const c = calculateSalary(emp);
         tGross += c.gross; tDed += c.totalDed; tNet += c.net;
     });
-    document.getElementById('statGross').textContent = `₱${tGross.toLocaleString()}`;
-    document.getElementById('statDed').textContent = `₱${tDed.toLocaleString()}`;
-    document.getElementById('statNet').textContent = `₱${tNet.toLocaleString()}`;
-    if(employees.length > 0) {
+    document.getElementById('statGross').textContent = `₱${Math.round(tGross).toLocaleString()}`;
+    document.getElementById('statDed').textContent = `₱${Math.round(tDed).toLocaleString()}`;
+    document.getElementById('statNet').textContent = `₱${Math.round(tNet).toLocaleString()}`;
+    if (employees.length > 0) {
         document.getElementById('statStatus').innerHTML = `<span class="badge badge-green">Ready</span>`;
     }
 }
 
-// 4. View Details Card Logic
+// ── View Details ─────────────────────────────────────────────────────────────
 function viewDetails(idx) {
     const emp = employees[idx];
     const c = calculateSalary(emp);
@@ -256,13 +315,16 @@ function viewDetails(idx) {
             <div class="detail-section">
                 <h4>Deductions</h4>
                 <div class="detail-row"><span>Withholding Tax:</span> <span>₱${emp.tax.toLocaleString()}</span></div>
-                <div class="detail-row"><span>SSS Contribution:</span> <span>₱${emp.sss.toLocaleString()}</span></div>
+                <div class="detail-row"><span>SSS/Other Deductions:</span> <span>₱${emp.sss.toLocaleString()}</span></div>
                 <div class="detail-row total-row" style="color:var(--red)"><span>Total Ded:</span> <span>₱${c.totalDed.toLocaleString()}</span></div>
             </div>
         </div>
         <div class="total-row" style="text-align:right; font-size:24px; color:var(--blue)">
             <span style="font-size:14px; color:var(--text-muted)">NET TAKE HOME:</span><br>
-            ₱${c.net.toLocaleString()}
+            ₱${Math.round(c.net).toLocaleString()}
+        </div>
+        <div style="margin-top:24px;text-align:right">
+            <button onclick="window.print()" style="padding:10px 22px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">🖨 Print Payslip</button>
         </div>
     `;
 }

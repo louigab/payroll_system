@@ -173,7 +173,7 @@
   <header class="topbar">
     <h2 id="pageTitle">Reports & Analytics</h2>
     <div id="topActions">
-        <button class="btn btn-outline" onclick="alert('Exporting Report...')">Export Data</button>
+        <button class="btn btn-outline" onclick="exportAnalyticsCSV()">Export Data</button>
         <button class="btn btn-primary" onclick="switchView('summary')">Generate Monthly Summary</button>
     </div>
     <button class="btn btn-outline" id="backBtn" style="display:none;" onclick="switchView('main')">← Back to Analytics</button>
@@ -183,10 +183,10 @@
     
     <section id="mainAnalytics" class="view-section active">
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">Annual Gross</div><div class="stat-value">₱2.4M</div></div>
-            <div class="stat-card"><div class="stat-label">Avg. Monthly Tax</div><div class="stat-value" style="color:var(--red)">₱142K</div></div>
-            <div class="stat-card"><div class="stat-label">Net Growth</div><div class="stat-value" style="color:var(--green)">+12.4%</div></div>
-            <div class="stat-card"><div class="stat-label">Active Employees</div><div class="stat-value">156</div></div>
+            <div class="stat-card"><div class="stat-label">Annual Gross</div><div class="stat-value" id="anaAnnualGross">—</div></div>
+            <div class="stat-card"><div class="stat-label">Avg. Monthly Tax</div><div class="stat-value" id="anaAvgTax" style="color:var(--red)">—</div></div>
+            <div class="stat-card"><div class="stat-label">Net Growth</div><div class="stat-value" id="anaNetGrowth" style="color:var(--green)">—</div></div>
+            <div class="stat-card"><div class="stat-label">Active Employees</div><div class="stat-value" id="anaActiveEmp">—</div></div>
         </div>
 
         <div class="analytics-main">
@@ -199,19 +199,8 @@
             </div>
             <div class="chart-card">
                 <h4 style="font-family:'Sora'; margin-bottom:20px;">Top Departments</h4>
-                <div style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Operations</span><span>45%</span></div>
-                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:45%; height:100%; background:var(--blue); border-radius:4px;"></div></div>
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Research</span><span>30%</span></div>
-                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:30%; height:100%; background:var(--blue-mid); border-radius:4px;"></div></div>
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Admin</span><span>25%</span></div>
-                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:25%; height:100%; background:var(--green); border-radius:4px;"></div></div>
-                    </div>
+                <div id="deptBars" style="display:flex; flex-direction:column; gap:16px;">
+                    <div style="color:#999;font-size:13px;text-align:center;padding:20px 0">Loading…</div>
                 </div>
             </div>
         </div>
@@ -234,10 +223,8 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr><td><strong>March 2026</strong></td><td>₱412,000.00</td><td>₱52,000.00</td><td>₱360,000.00</td><td>152</td><td><span class="badge badge-blue">Released</span></td></tr>
-                    <tr><td><strong>February 2026</strong></td><td>₱405,500.00</td><td>₱51,200.00</td><td>₱354,300.00</td><td>150</td><td><span class="badge badge-blue">Released</span></td></tr>
-                    <tr><td><strong>January 2026</strong></td><td>₱398,000.00</td><td>₱50,000.00</td><td>₱348,000.00</td><td>148</td><td><span class="badge badge-blue">Released</span></td></tr>
+                <tbody id="summaryTbody">
+                    <tr><td colspan="6" style="text-align:center;color:#999;padding:20px">Loading…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -246,9 +233,12 @@
   </div>
 </div>
 
+<script src="api.js"></script>
 <script>
-  // Trend Chart Data
-  const trendData = [
+  requireAuth();
+
+  // Trend Chart Data (static; replaced by API data when available)
+  let trendData = [
     { m: 'Nov', v: 60 }, { m: 'Dec', v: 75 }, { m: 'Jan', v: 70 }, 
     { m: 'Feb', v: 85 }, { m: 'Mar', v: 92 }, { m: 'Apr', v: 100 }
   ];
@@ -297,6 +287,143 @@
 
   // Init
   renderChart();
+
+  // ── Load real data from API ──
+  (async function initAnalytics() {
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+    const fmtK = n => n >= 1_000_000 ? '₱'+(n/1_000_000).toFixed(1)+'M' : n >= 1_000 ? '₱'+Math.round(n/1_000)+'K' : '₱'+n;
+
+    // Active employees count + department breakdown
+    try {
+      const emps = await apiListEmployees({ limit: 200 });
+      const active = emps.filter(e => (e.status||'active') === 'active').length;
+      set('anaActiveEmp', active);
+
+      // Estimate annual gross from base salaries
+      const totalMonthly = emps.reduce((s,e) => s + Number(e.base_salary||0), 0);
+      const annualGross = totalMonthly * 12;
+      const avgMonthlyTax = Math.round(totalMonthly * 0.10);
+      if (totalMonthly > 0) {
+        set('anaAnnualGross', fmtK(annualGross));
+        set('anaAvgTax', fmtK(avgMonthlyTax));
+      }
+
+      // Top departments bar chart
+      const deptMap = {};
+      emps.forEach(e => {
+        const dept = e.department_name || 'Other';
+        deptMap[dept] = (deptMap[dept] || 0) + 1;
+      });
+      const deptColors = ['var(--blue)','var(--blue-mid)','var(--green)','var(--amber)','var(--violet)'];
+      const sorted = Object.entries(deptMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+      const maxCount = sorted[0]?.[1] || 1;
+      const deptBars = document.getElementById('deptBars');
+      if (deptBars && sorted.length > 0) {
+        deptBars.innerHTML = sorted.map(([dept, count], i) => {
+          const pct = Math.round((count / maxCount) * 100);
+          const share = Math.round((count / emps.length) * 100);
+          return `<div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>${dept}</span><span>${share}%</span></div>
+            <div style="height:8px;background:var(--bg);border-radius:4px;"><div style="width:${pct}%;height:100%;background:${deptColors[i%deptColors.length]};border-radius:4px;"></div></div>
+          </div>`;
+        }).join('');
+      }
+    } catch(_) {}
+
+    // Payroll runs → monthly summary table + trend chart + net growth
+    try {
+      const runs = await apiListPayrollRuns();
+      if (runs.length === 0) {
+        const tbody = document.getElementById('summaryTbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px">No payroll runs found</td></tr>';
+        return;
+      }
+
+      // Group runs by year-month
+      const monthly = {};
+      for (const run of runs) {
+        const ym = (run.created_at || run.pay_period_start || '').slice(0, 7);
+        if (!ym) continue;
+        if (!monthly[ym]) monthly[ym] = { gross: 0, net: 0, ded: 0, count: 0 };
+
+        try {
+          const items = await apiListPayrollItems(run.id);
+          items.forEach(item => {
+            monthly[ym].gross += Number(item.gross_pay || 0);
+            monthly[ym].net   += Number(item.net_pay  || 0);
+            monthly[ym].count += 1;
+          });
+          monthly[ym].ded = monthly[ym].gross - monthly[ym].net;
+        } catch(_) {}
+      }
+
+      const months = Object.keys(monthly).sort();
+      if (months.length === 0) return;
+
+      // Net growth: compare last two months
+      if (months.length >= 2) {
+        const last = monthly[months[months.length - 1]].gross;
+        const prev = monthly[months[months.length - 2]].gross;
+        if (prev > 0) {
+          const growth = ((last - prev) / prev) * 100;
+          const sign = growth >= 0 ? '+' : '';
+          const el = document.getElementById('anaNetGrowth');
+          if (el) {
+            el.textContent = sign + growth.toFixed(1) + '%';
+            el.style.color = growth >= 0 ? 'var(--green)' : 'var(--red)';
+          }
+        }
+      }
+
+      // Update summary table
+      const tbody = document.getElementById('summaryTbody');
+      if (tbody) {
+        tbody.innerHTML = months.reverse().map(ym => {
+          const r = monthly[ym];
+          const label = new Date(ym + '-01').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+          return `<tr>
+            <td><strong>${label}</strong></td>
+            <td>₱${r.gross.toLocaleString()}</td>
+            <td>₱${r.ded.toLocaleString()}</td>
+            <td>₱${r.net.toLocaleString()}</td>
+            <td>${r.count}</td>
+            <td><span class="badge badge-blue">Released</span></td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Update trend chart
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const recentMonths = months.slice(-6);
+      const maxGross = Math.max(...recentMonths.map(ym => monthly[ym].gross), 1);
+      trendData = recentMonths.map(ym => ({
+        m: MONTHS[parseInt(ym.slice(5,7)) - 1],
+        v: Math.round((monthly[ym].gross / maxGross) * 100)
+      }));
+      renderChart();
+
+      // Update annual gross stat
+      const totalGross = months.reduce((s,ym) => s + monthly[ym].gross, 0);
+      const totalTax   = months.reduce((s,ym) => s + monthly[ym].ded,   0);
+      if (totalGross > 0) {
+        set('anaAnnualGross', fmtK(totalGross));
+        set('anaAvgTax', fmtK(Math.round(totalTax / months.length)));
+      }
+    } catch(_) {}
+  })();
+  function exportAnalyticsCSV() {
+    const rows = [['Month','Gross Pay','Net Pay','Tax','Employees']];
+    document.querySelectorAll('#summaryTbody tr').forEach(tr => {
+      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+      if (cells.length >= 5) rows.push(cells);
+    });
+    if (rows.length <= 1) { alert('No data to export yet.'); return; }
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'analytics_report.csv';
+    a.click();
+  }
 </script>
 </body>
 </html>

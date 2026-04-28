@@ -469,12 +469,8 @@
       <div class="dtr-table-card">
         <div class="dtr-month-header">
           <h3 id="dtrMonthLabel">Daily Time Record</h3>
-          <select id="dtrMonthPicker" onchange="renderDTR()">
-            <option value="2025-04">April 2025</option>
-            <option value="2025-03">March 2025</option>
-            <option value="2025-02">February 2025</option>
-            <option value="2025-01">January 2025</option>
-          </select>
+          <select id="dtrMonthPicker" onchange="onDtrMonthChange()"></select>
+          <button onclick="window.print()" style="margin-left:10px;padding:7px 16px;background:#3b82f6;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600">🖨 Print DTR</button>
         </div>
         <div style="overflow-x:auto;">
           <table class="dtr-table">
@@ -503,72 +499,21 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script>
 // ─────────────────────────────────────────────
 // DATA
 // ─────────────────────────────────────────────
 const HOURLY_RATE_DIVISOR = 8; // 8-hr workday standard
 
-const employees = [
-  { id:1,  name:'Guy Hawkins',    pos:'HR Manager',              dept:'HR',        color:'linear-gradient(135deg,#3b82f6,#1d4ed8)' },
-  { id:2,  name:'Floyd Miles',    pos:'Recruitment Specialist',  dept:'HR',        color:'linear-gradient(135deg,#10b981,#059669)' },
-  { id:3,  name:'John Doe',       pos:'Product Designer',        dept:'IT',        color:'linear-gradient(135deg,#f59e0b,#d97706)' },
-  { id:4,  name:'Wade Warren',    pos:'Network Administrator',   dept:'IT',        color:'linear-gradient(135deg,#ef4444,#dc2626)' },
-  { id:5,  name:'Jane Cooper',    pos:'Chief Financial Officer', dept:'Finance',   color:'linear-gradient(135deg,#8b5cf6,#6d28d9)' },
-  { id:6,  name:'Jenny Wilson',   pos:'Accountant',              dept:'Finance',   color:'linear-gradient(135deg,#06b6d4,#0284c7)' },
-  { id:7,  name:'Arlene McCoy',   pos:'Payroll Specialist',      dept:'Finance',   color:'linear-gradient(135deg,#ec4899,#be185d)' },
-  { id:8,  name:'Jerome Bell',    pos:'Sales Manager',           dept:'Operations',color:'linear-gradient(135deg,#84cc16,#4d7c0f)' },
-  { id:9,  name:'Albert Flores',  pos:'Marketing Manager',       dept:'Marketing', color:'linear-gradient(135deg,#3b82f6,#7c3aed)' },
-  { id:10, name:'Dianne Russell', pos:'UX Researcher',           dept:'IT',        color:'linear-gradient(135deg,#f97316,#ef4444)' },
-];
+let employees = [];
 
-// attendance[dateStr][empId] = { timeIn, timeOut, status, lateMin, hoursWorked, otHours }
+// attendance[dateStr][empId] = { timeIn, timeOut, status, lateMin, hoursWorked, otHours, apiId }
 const attendance = {};
 
-// seed some historical data
-function seedHistory() {
-  const months = ['2025-01','2025-02','2025-03','2025-04'];
-  const statuses = ['Present','Present','Present','Present','Late','Present','Absent','Present','Overtime','Present'];
-  months.forEach(ym => {
-    const [y,m] = ym.split('-').map(Number);
-    const days = new Date(y, m, 0).getDate();
-    for (let d=1; d<=days; d++) {
-      const date = new Date(y, m-1, d);
-      const dow = date.getDay();
-      if (dow===0||dow===6) continue; // skip weekends
-      const ds = `${ym}-${String(d).padStart(2,'0')}`;
-      attendance[ds] = {};
-      employees.forEach((emp,i) => {
-        const st = statuses[(i + d) % statuses.length];
-        let ti='', to='', lateMin=0, hw=0, ot=0;
-        const startH=7, endH=16;
-        if (st==='Present') {
-          const lateRandMin = Math.random()<0.1 ? Math.floor(Math.random()*5) : 0;
-          ti = fmt2(startH) + ':' + fmt2(lateRandMin);
-          to = fmt2(endH) + ':00';
-          lateMin = lateRandMin;
-          hw = 8;
-        } else if (st==='Late') {
-          lateMin = 15 + Math.floor(Math.random()*45);
-          ti = minsToTime(7*60 + lateMin);
-          to = fmt2(endH) + ':00';
-          hw = parseFloat((8 - lateMin/60).toFixed(2));
-        } else if (st==='Overtime') {
-          ti = fmt2(startH) + ':00';
-          const otMins = 60 + Math.floor(Math.random()*120);
-          to = minsToTime(endH*60 + otMins);
-          ot = parseFloat((otMins/60).toFixed(2));
-          hw = 8 + ot;
-          lateMin = 0;
-        } else { // Absent
-          ti=''; to=''; hw=0; lateMin=0;
-        }
-        attendance[ds][emp.id] = {timeIn:ti,timeOut:to,status:st,lateMin,hoursWorked:hw,otHours:ot};
-      });
-    }
-  });
-}
-
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
 function fmt2(n){ return String(n).padStart(2,'0'); }
 function minsToTime(totalMins) {
   const h = Math.floor(totalMins/60), m = totalMins%60;
@@ -579,6 +524,25 @@ function timeToMins(t) {
   const [h,m] = t.split(':').map(Number);
   return h*60+m;
 }
+function empColor(emp) {
+  const palette = [
+    'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+    'linear-gradient(135deg,#10b981,#059669)',
+    'linear-gradient(135deg,#f59e0b,#d97706)',
+    'linear-gradient(135deg,#ef4444,#dc2626)',
+    'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+    'linear-gradient(135deg,#06b6d4,#0284c7)',
+    'linear-gradient(135deg,#ec4899,#be185d)',
+    'linear-gradient(135deg,#84cc16,#4d7c0f)',
+  ];
+  const idx = (emp.id || '').toString().split('').reduce((a,c)=>a+c.charCodeAt(0),0) % palette.length;
+  return palette[idx];
+}
+function empFullName(emp) {
+  return [emp.first_name, emp.last_name].filter(Boolean).join(' ') || emp.name || '—';
+}
+function empPos(emp) { return emp.job_title || emp.position || emp.pos || ''; }
+function empDept(emp) { return emp.department_name || emp.dept || ''; }
 
 // ─────────────────────────────────────────────
 // INIT
@@ -586,29 +550,63 @@ function timeToMins(t) {
 let currentDate = '';
 let currentEmp = null;
 
-window.onload = () => {
-  seedHistory();
-  const today = new Date();
-  const ds = today.toISOString().split('T')[0];
-  document.getElementById('datePicker').value = ds;
-  currentDate = ds;
-  ensureDateRecord(ds);
+window.onload = async () => {
+  requireAuth();
+  buildMonthOptions();
+  try {
+    employees = await apiListEmployees({ limit: 200 });
+  } catch(e) {
+    employees = [];
+    showToast('Could not load employees: ' + e.message, 'warn');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('datePicker').value = today;
+  currentDate = today;
+  await loadAttendanceForDate(today);
   renderList();
   updateStats();
 };
+
+async function loadAttendanceForDate(ds) {
+  if (!attendance[ds]) {
+    attendance[ds] = {};
+    // Seed defaults from employees
+    employees.forEach(emp => {
+      attendance[ds][emp.id] = {timeIn:'07:00',timeOut:'16:00',status:'Present',lateMin:0,hoursWorked:8,otHours:0,apiId:null};
+    });
+  }
+
+  // Overlay with server records (if any)
+  try {
+    const records = await apiListAttendance({ startDate: ds, endDate: ds, limit: 200 });
+    records.forEach(rec => {
+      const empId = rec.employee_id;
+      attendance[ds][empId] = {
+        timeIn:      rec.time_in   ? rec.time_in.slice(0,5) : '',
+        timeOut:     rec.time_out  ? rec.time_out.slice(0,5) : '',
+        status:      rec.status    || 'Present',
+        lateMin:     Number(rec.late_minutes  || 0),
+        hoursWorked: Number(rec.hours_worked  || 0),
+        otHours:     Number(rec.ot_hours      || 0),
+        apiId:       rec.id
+      };
+    });
+  } catch(_) { /* no records yet is fine */ }
+}
 
 function ensureDateRecord(ds) {
   if (!attendance[ds]) {
     attendance[ds] = {};
     employees.forEach(emp => {
-      attendance[ds][emp.id] = {timeIn:'07:00',timeOut:'16:00',status:'Present',lateMin:0,hoursWorked:8,otHours:0};
+      attendance[ds][emp.id] = {timeIn:'07:00',timeOut:'16:00',status:'Present',lateMin:0,hoursWorked:8,otHours:0,apiId:null};
     });
   }
 }
 
-function onDateChange() {
+async function onDateChange() {
   currentDate = document.getElementById('datePicker').value;
-  ensureDateRecord(currentDate);
+  await loadAttendanceForDate(currentDate);
   renderList();
   updateStats();
 }
@@ -681,10 +679,10 @@ function renderList() {
   const tbody = document.getElementById('attTableBody');
   tbody.innerHTML = '';
 
-  employees.filter(e => !q || e.name.toLowerCase().includes(q) || e.dept.toLowerCase().includes(q))
+  employees.filter(e => !q || empFullName(e).toLowerCase().includes(q) || empDept(e).toLowerCase().includes(q))
   .forEach(emp => {
     const r = rec[emp.id] || {timeIn:'',timeOut:'',status:'Present',lateMin:0,hoursWorked:0,otHours:0};
-    const initials = emp.name.split(' ').map(n=>n[0]).join('').slice(0,2);
+    const initials = empFullName(emp).split(' ').map(n=>n[0]).join('').slice(0,2);
 
     const hoursClass = r.status==='Absent'?'absent':r.otHours>0?'overtime':r.lateMin>0?'deducted':'full';
     const hoursLabel = r.status==='Absent'? '—'
@@ -698,8 +696,8 @@ function renderList() {
     tr.innerHTML = `
       <td>
         <div class="emp-cell">
-          <div class="emp-av" style="background:${emp.color}">${initials}</div>
-          <div><div class="emp-name">${emp.name}</div><div class="emp-pos">${emp.pos} · ${emp.dept}</div></div>
+          <div class="emp-av" style="background:${empColor(emp)}">${initials}</div>
+          <div><div class="emp-name">${empFullName(emp)}</div><div class="emp-pos">${empPos(emp)} · ${empDept(emp)}</div></div>
         </div>
       </td>
       <td>
@@ -827,10 +825,36 @@ function updateStats() {
 }
 
 // ─────────────────────────────────────────────
-// SAVE
+// SAVE — persist to API
 // ─────────────────────────────────────────────
-function saveAll() {
-  showToast('Attendance saved for ' + new Date(currentDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + '.', 'success');
+async function saveAll() {
+  const dateLabel = new Date(currentDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const rec = attendance[currentDate] || {};
+  let saved = 0, failed = 0;
+
+  for (const emp of employees) {
+    const r = rec[emp.id];
+    if (!r) continue;
+    try {
+      await apiCreateAttendance({
+        employee_id:   emp.id,
+        work_date:     currentDate,
+        time_in:       r.timeIn  || null,
+        time_out:      r.timeOut || null,
+        status:        r.status,
+        late_minutes:  r.lateMin,
+        hours_worked:  r.hoursWorked,
+        ot_hours:      r.otHours
+      });
+      saved++;
+    } catch(_) { failed++; }
+  }
+
+  if (failed === 0) {
+    showToast('Attendance saved for ' + dateLabel + ' (' + saved + ' records).', 'success');
+  } else {
+    showToast(`Saved ${saved}, failed ${failed}. DB may not be ready.`, 'warn');
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -838,18 +862,19 @@ function saveAll() {
 // ─────────────────────────────────────────────
 function openDTR(empId) {
   currentEmp = employees.find(e => e.id===empId);
+  if (!currentEmp) return;
   document.getElementById('listPanel').style.display = 'none';
   document.getElementById('dtrPanel').classList.add('open');
-  document.getElementById('pageTitle').textContent = 'DTR — ' + currentEmp.name;
+  document.getElementById('pageTitle').textContent = 'DTR — ' + empFullName(currentEmp);
 
-  const initials = currentEmp.name.split(' ').map(n=>n[0]).join('').slice(0,2);
+  const initials = empFullName(currentEmp).split(' ').map(n=>n[0]).join('').slice(0,2);
 
   // Hero
   document.getElementById('dtrHero').innerHTML = `
-    <div class="dtr-av" style="background:${currentEmp.color}">${initials}</div>
+    <div class="dtr-av" style="background:${empColor(currentEmp)}">${initials}</div>
     <div class="dtr-info">
-      <h2>${currentEmp.name}</h2>
-      <p>${currentEmp.pos} · ${currentEmp.dept}</p>
+      <h2>${empFullName(currentEmp)}</h2>
+      <p>${empPos(currentEmp)} · ${empDept(currentEmp)}</p>
       <div class="dtr-pills">
         <span class="dtr-pill">ID: BFAR-2023-0${String(currentEmp.id).padStart(2,'0')}</span>
         <span class="dtr-pill">Daily Rate: ₱${(3500/22).toFixed(2)}</span>
@@ -857,6 +882,48 @@ function openDTR(empId) {
     </div>
   `;
 
+  renderDTR();
+}
+
+function buildMonthOptions() {
+  const sel = document.getElementById('dtrMonthPicker');
+  const now = new Date();
+  sel.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+}
+
+async function onDtrMonthChange() {
+  const ym = document.getElementById('dtrMonthPicker').value;
+  const [y, m] = ym.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const startDate = `${ym}-01`;
+  const endDate = `${ym}-${String(daysInMonth).padStart(2,'0')}`;
+  // Load all days of the month from API
+  try {
+    const records = await apiListAttendance({ startDate, endDate, limit: 500 });
+    records.forEach(rec => {
+      const ds = rec.date ? rec.date.slice(0,10) : null;
+      if (!ds) return;
+      if (!attendance[ds]) attendance[ds] = {};
+      attendance[ds][rec.employee_id] = {
+        timeIn:      rec.time_in   ? rec.time_in.slice(0,5) : '',
+        timeOut:     rec.time_out  ? rec.time_out.slice(0,5) : '',
+        status:      rec.status    || 'Present',
+        lateMin:     Number(rec.late_minutes  || 0),
+        hoursWorked: Number(rec.hours_worked  || 0),
+        otHours:     Number(rec.ot_hours      || 0),
+        apiId:       rec.id
+      };
+    });
+  } catch(_) { /* use whatever is cached */ }
   renderDTR();
 }
 

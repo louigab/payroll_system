@@ -159,8 +159,8 @@
     <section id="mainView" class="view-container active">
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-label">Tax Status</div><div class="stat-value"><span class="badge">Compliant</span></div></div>
-            <div class="stat-card"><div class="stat-label">Next Filing Date</div><div class="stat-value">May 15, 2026</div></div>
-            <div class="stat-card"><div class="stat-label">Total Tax Liability</div><div class="stat-value" style="color:var(--red)">₱184,200.00</div></div>
+            <div class="stat-card"><div class="stat-label">Next Filing Date</div><div class="stat-value" id="taxFilingDate">—</div></div>
+            <div class="stat-card"><div class="stat-label">Total Tax Liability</div><div class="stat-value" style="color:var(--red)" id="taxTotalLiability">—</div></div>
         </div>
 
         <div class="action-grid">
@@ -179,8 +179,9 @@
 
     <section id="expensesView" class="view-container">
         <div class="table-card">
-            <div style="padding:24px; border-bottom:1px solid var(--border);">
+            <div style="padding:24px; border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
                 <h4 style="font-family:'Sora'">Expense Confirmation (Current Period)</h4>
+                <button onclick="exportExpensesCSV()" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600">⬇️ Export CSV</button>
             </div>
             <table>
                 <thead>
@@ -190,15 +191,8 @@
                         <th>% of Total</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr><td>Gross Salaries</td><td>₱1,250,000.00</td><td>82%</td></tr>
-                    <tr><td>Employer SSS/PhilHealth</td><td>₱125,000.00</td><td>8%</td></tr>
-                    <tr><td>Withholding Taxes</td><td>₱150,000.00</td><td>10%</td></tr>
-                    <tr style="background:#f8fafc; font-weight:700;">
-                        <td>Total Payroll Expense</td>
-                        <td style="color:var(--blue)">₱1,525,000.00</td>
-                        <td>100%</td>
-                    </tr>
+                <tbody id="expensesBody">
+                    <tr><td colspan="3" style="text-align:center;color:#999;padding:20px">Loading…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -206,6 +200,10 @@
 
     <section id="taxView" class="view-container">
         <div class="table-card">
+            <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <h4 style="font-family:'Sora';margin:0">Employee Tax Breakdown</h4>
+                <button onclick="exportTaxBreakdownCSV()" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600">⬇️ Export CSV</button>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -226,13 +224,9 @@
   </div>
 </div>
 
+<script src="api.js"></script>
 <script>
-  const employees = [
-    { name: "Guy Hawkins", gross: 45000, tax: 4500, sss: 1200, ph: 900 },
-    { name: "Floyd Miles", gross: 38000, tax: 3200, sss: 1200, ph: 760 },
-    { name: "Jane Cooper", gross: 55000, tax: 6800, sss: 1200, ph: 1100 },
-    { name: "Arlene McCoy", gross: 42000, tax: 4100, sss: 1200, ph: 840 }
-  ];
+  let employees = [];
 
   function showView(view) {
     // Reset all
@@ -258,22 +252,113 @@
     }
   }
 
+  function computeDeductions(gross) {
+    const tax = Math.round(gross * 0.10);
+    const sss = 1350;
+    const ph  = Math.round(gross * 0.0125);
+    return { tax, sss, ph };
+  }
+
   function renderTaxTable() {
     const body = document.getElementById('taxBody');
     body.innerHTML = '';
     employees.forEach(emp => {
-      const total = emp.tax + emp.sss + emp.ph;
+      const gross = Number(emp.base_salary || emp.gross || 0);
+      const name = [emp.first_name, emp.last_name].filter(Boolean).join(' ') || emp.name || '—';
+      const { tax, sss, ph } = computeDeductions(gross);
+      const total = tax + sss + ph;
       body.innerHTML += `
         <tr>
-          <td><strong>${emp.name}</strong></td>
-          <td>₱${emp.gross.toLocaleString()}</td>
-          <td>₱${emp.tax.toLocaleString()}</td>
-          <td>₱${emp.sss.toLocaleString()}</td>
-          <td>₱${emp.ph.toLocaleString()}</td>
+          <td><strong>${name}</strong></td>
+          <td>₱${gross.toLocaleString()}</td>
+          <td>₱${tax.toLocaleString()}</td>
+          <td>₱${sss.toLocaleString()}</td>
+          <td>₱${ph.toLocaleString()}</td>
           <td style="color:var(--red); font-weight:600;">₱${total.toLocaleString()}</td>
         </tr>
       `;
     });
+    if (employees.length === 0) {
+      body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No employee data (DB not connected).</td></tr>';
+    }
+  }
+
+  // ── Init ──
+  (async function init() {
+    requireAuth();
+
+    // Dynamic next filing date: 15th of next month
+    const now = new Date();
+    const filing = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+    const filingStr = filing.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const filingEl = document.getElementById('taxFilingDate');
+    if (filingEl) filingEl.textContent = filingStr;
+
+    try {
+      employees = await apiListEmployees({ limit: 200 });
+    } catch(_) {
+      employees = [];
+    }
+
+    if (employees.length > 0) {
+      // Total tax liability = sum of each employee's computed deductions
+      let totalLiability = 0;
+      employees.forEach(emp => {
+        const gross = Number(emp.base_salary || 0);
+        const { tax, sss, ph } = computeDeductions(gross);
+        totalLiability += tax + sss + ph;
+      });
+      const liabilityEl = document.getElementById('taxTotalLiability');
+      if (liabilityEl) liabilityEl.textContent = '₱' + totalLiability.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+
+      // Populate expenses view
+      const totalGross = employees.reduce((s,e) => s + Number(e.base_salary||0), 0);
+      const employerSSS = Math.round(totalGross * 0.1);
+      const withholdingTax = Math.round(totalGross * 0.10);
+      const grandTotal = totalGross + employerSSS + withholdingTax;
+      const fmt = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+      const pct = (n, total) => total > 0 ? Math.round((n/total)*100) + '%' : '0%';
+      const expBody = document.getElementById('expensesBody');
+      if (expBody && grandTotal > 0) {
+        expBody.innerHTML = `
+          <tr><td>Gross Salaries</td><td>${fmt(totalGross)}</td><td>${pct(totalGross, grandTotal)}</td></tr>
+          <tr><td>Employer SSS/PhilHealth</td><td>${fmt(employerSSS)}</td><td>${pct(employerSSS, grandTotal)}</td></tr>
+          <tr><td>Withholding Taxes</td><td>${fmt(withholdingTax)}</td><td>${pct(withholdingTax, grandTotal)}</td></tr>
+          <tr style="background:#f8fafc;font-weight:700;">
+            <td>Total Payroll Expense</td>
+            <td style="color:var(--blue)">${fmt(grandTotal)}</td>
+            <td>100%</td>
+          </tr>`;
+      } else if (expBody) {
+        expBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;padding:20px">No employee data available</td></tr>';
+      }
+    }
+  })();
+
+  function downloadCSV(filename, rows) {
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = filename;
+    a.click();
+  }
+
+  function exportExpensesCSV() {
+    const rows = [['Category','Total Amount','% of Total']];
+    document.querySelectorAll('#expensesBody tr').forEach(tr => {
+      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+      if (cells.length >= 3) rows.push(cells);
+    });
+    downloadCSV('payroll_expenses.csv', rows);
+  }
+
+  function exportTaxBreakdownCSV() {
+    const rows = [['Employee','Gross Pay','Withholding Tax','SSS Contrib.','PhilHealth','Total Tax']];
+    document.querySelectorAll('#taxBody tr').forEach(tr => {
+      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+      if (cells.length >= 6) rows.push(cells);
+    });
+    downloadCSV('employee_tax_breakdown.csv', rows);
   }
 </script>
 </body>

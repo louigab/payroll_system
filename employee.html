@@ -569,11 +569,21 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
         <input type="text" placeholder="Search now" id="searchInput" oninput="filterTable()" />
       </div>
-      <div class="notif-btn">
+      <div class="notif-btn" onclick="toggleEmpDropdown('notifDrop')" style="position:relative">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <span class="notif-dot"></span>
+        <div id="notifDrop" class="topbar-drop" style="display:none;min-width:220px">
+          <div class="drop-item">✅ Payroll is on schedule</div>
+          <div class="drop-item">👤 Review new employee submissions</div>
+        </div>
       </div>
-      <div class="avatar">A</div>
+      <div class="avatar" onclick="toggleEmpDropdown('avatarDrop')" style="cursor:pointer;position:relative">A
+        <div id="avatarDrop" class="topbar-drop" style="display:none">
+          <div class="drop-item" style="font-weight:600" id="empDropUser">Admin</div>
+          <div style="height:1px;background:var(--border);margin:4px 0"></div>
+          <div class="drop-item" onclick="apiLogout()">🚪 Logout</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -644,9 +654,10 @@
       <div class="detail-hero">
         <div class="detail-avatar-wrap">
           <div class="detail-avatar" id="detailAvatar" style="background: linear-gradient(135deg,#3b82f6,#1d4ed8)">–</div>
-          <button class="edit-avatar-btn">
+          <button class="edit-avatar-btn" onclick="document.getElementById('avatarFileInput').click()" title="Change photo">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
         </div>
       </div>
       <div class="detail-body">
@@ -661,9 +672,9 @@
           <div class="detail-row"><span class="dk">Last Login</span><span class="dv" id="dLogin">—</span></div>
         </div>
         <div class="detail-divider"></div>
-        <a class="detail-link" href="#">Personal Information <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
-        <a class="detail-link" href="#">Attendance History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
-        <a class="detail-link" href="#">Payroll History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a class="detail-link" onclick="openPersonalInfoModal()" style="cursor:pointer">Personal Information <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a class="detail-link" onclick="goToAttendance()" style="cursor:pointer">Attendance History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a class="detail-link" href="payroll.html" style="cursor:pointer">Payroll History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
       </div>
     </aside>
   </div>
@@ -754,7 +765,81 @@
 <!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script>
+  requireAuth();
+
+  // Set topbar avatar/user info
+  const _eu = getCurrentUser();
+  if (_eu) {
+    const el = document.getElementById('empDropUser');
+    if (el) el.textContent = _eu.email || 'Admin';
+    const av = document.querySelector('.avatar');
+    if (av) av.childNodes[0].textContent = (_eu.email || 'A').slice(0,1).toUpperCase();
+  }
+
+  function toggleEmpDropdown(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.style.display === 'block';
+    document.querySelectorAll('.topbar-drop').forEach(d => d.style.display = 'none');
+    el.style.display = isOpen ? 'none' : 'block';
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.notif-btn') && !e.target.closest('.avatar')) {
+      document.querySelectorAll('.topbar-drop').forEach(d => d.style.display = 'none');
+    }
+  });
+
+  function goToAttendance() { window.location.href = 'attendance.html'; }
+
+  function openPersonalInfoModal() {
+    if (selectedIdx < 0 || !employees[selectedIdx]) return;
+    const emp = employees[selectedIdx];
+    const fields = [
+      ['Employee ID', emp.id],
+      ['Full Name', (emp.first_name || '') + ' ' + (emp.last_name || '')],
+      ['Email', emp.email || '—'],
+      ['Job Title', emp.job_title || emp.position || '—'],
+      ['Department', emp.department_name || emp.department || '—'],
+      ['Status', emp.status || '—'],
+      ['Hire Date', emp.hire_date ? emp.hire_date.slice(0,10) : '—'],
+      ['Base Salary', emp.base_salary != null ? '₱' + Number(emp.base_salary).toLocaleString() : '—'],
+      ['Hourly Rate', emp.hourly_rate != null ? '₱' + Number(emp.hourly_rate).toLocaleString() : '—'],
+    ];
+    const rows = fields.map(([k,v]) => `<tr><td style="font-weight:600;padding:6px 12px;white-space:nowrap">${k}</td><td style="padding:6px 12px">${v}</td></tr>`).join('');
+    const html = `<div id="piModal" onclick="if(event.target===this)closePiModal()" style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999">
+      <div style="background:#fff;border-radius:12px;padding:28px;min-width:360px;max-width:480px;width:90%">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0;font-size:1.1rem">Personal Information</h3>
+          <button onclick="closePiModal()" style="border:none;background:none;font-size:1.4rem;cursor:pointer">×</button>
+        </div>
+        <table style="width:100%;border-collapse:collapse">${rows}</table>
+      </div>
+    </div>`;
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    document.body.appendChild(div.firstElementChild);
+  }
+  function closePiModal() {
+    const m = document.getElementById('piModal');
+    if (m) m.remove();
+  }
+
+  function handleAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const da = document.getElementById('detailAvatar');
+      if (da) {
+        da.style.background = `url(${ev.target.result}) center/cover no-repeat`;
+        da.textContent = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   const avatarColors = [
     'linear-gradient(135deg,#3b82f6,#1d4ed8)',
     'linear-gradient(135deg,#10b981,#059669)',
@@ -766,50 +851,49 @@
     'linear-gradient(135deg,#84cc16,#4d7c0f)',
   ];
 
-  let employees = [
-    { name:'Guy Hawkins',    position:'HR Manager',              dept:'HR',        joining:'2025-02-01', salary:'4200',  status:'Active',   login:'Apr 10, 2025', color:0 },
-    { name:'Floyd Miles',   position:'Recruitment Specialist',  dept:'HR',        joining:'2025-02-01', salary:'3800',  status:'Active',   login:'Apr 18, 2025', color:1 },
-    { name:'John Doe',      position:'Product Designer',        dept:'IT',        joining:'2023-01-10', salary:'3500',  status:'Active',   login:'Mar 12, 2025', color:2 },
-    { name:'Wade Warren',   position:'Network Administrator',   dept:'IT',        joining:'2025-02-01', salary:'4600',  status:'Active',   login:'Apr 15, 2025', color:3 },
-    { name:'Jane Cooper',   position:'Chief Financial Officer', dept:'Finance',   joining:'2025-02-01', salary:'7200',  status:'Active',   login:'Apr 19, 2025', color:4 },
-    { name:'Jenny Wilson',  position:'Accountant',              dept:'Finance',   joining:'2025-02-01', salary:'3200',  status:'Active',   login:'Apr 17, 2025', color:5 },
-    { name:'Arlene McCoy',  position:'Payroll Specialist',      dept:'Finance',   joining:'2025-02-01', salary:'3400',  status:'Active',   login:'Apr 16, 2025', color:6 },
-    { name:'Jerome Bell',   position:'Sales Manager',           dept:'Operations',joining:'2025-02-01', salary:'5100',  status:'Active',   login:'Apr 11, 2025', color:7 },
-    { name:'Albert Flores', position:'Marketing Manager',       dept:'Marketing', joining:'2025-02-01', salary:'4800',  status:'Active',   login:'Apr 14, 2025', color:0 },
-    { name:'Dianne Russell',position:'UX Researcher',           dept:'IT',        joining:'2024-03-05', salary:'3900',  status:'Inactive', login:'Jan 30, 2025', color:4 },
-  ];
-
-  let selectedIdx = 2;
+  let employees = [];
+  let selectedIdx = -1;
 
   function getInitials(name) {
+    if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+  }
+
+  function empName(emp) {
+    return [emp.first_name, emp.last_name].filter(Boolean).join(' ') || emp.name || '—';
+  }
+
+  function empColor(emp) {
+    const idx = (emp.id || '').toString().split('').reduce((a,c) => a + c.charCodeAt(0), 0) % avatarColors.length;
+    return avatarColors[idx];
   }
 
   function fmtDate(dateStr) {
     if (!dateStr) return '—';
-    const d = new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
     return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
   }
 
   function fmtSalary(s) {
-    if (!s) return '—';
+    if (!s && s !== 0) return '—';
     return '₱' + Number(s).toLocaleString();
   }
 
   function updateStats() {
     document.getElementById('statTotal').textContent = employees.length;
-    document.getElementById('statActive').textContent = employees.filter(e=>e.status==='Active').length;
-    document.getElementById('statInactive').textContent = employees.filter(e=>e.status==='Inactive').length;
+    document.getElementById('statActive').textContent = employees.filter(e=>e.status==='active'||e.status==='Active').length;
+    document.getElementById('statInactive').textContent = employees.filter(e=>e.status==='inactive'||e.status==='Inactive').length;
   }
 
   function getFiltered() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     if (!q) return employees;
-    return employees.filter(e =>
-      e.name.toLowerCase().includes(q) ||
-      e.position.toLowerCase().includes(q) ||
-      e.dept.toLowerCase().includes(q)
-    );
+    return employees.filter(e => {
+      const name = empName(e).toLowerCase();
+      const pos  = (e.position || e.job_title || '').toLowerCase();
+      const dept = (e.department_name || e.dept || '').toLowerCase();
+      return name.includes(q) || pos.includes(q) || dept.includes(q);
+    });
   }
 
   function renderTable(data) {
@@ -821,19 +905,23 @@
     }
     data.forEach(emp => {
       const origIdx = employees.indexOf(emp);
+      const name = empName(emp);
+      const dept = emp.department_name || emp.dept || '—';
+      const pos  = emp.position || emp.job_title || '—';
+      const status = emp.status || 'active';
       const tr = document.createElement('tr');
       if (origIdx === selectedIdx) tr.classList.add('selected-row');
       tr.innerHTML = `
         <td>
           <div class="emp-cell">
-            <div class="emp-avatar" style="background:${avatarColors[emp.color]}">${getInitials(emp.name)}</div>
-            <span class="emp-name">${emp.name}</span>
+            <div class="emp-avatar" style="background:${empColor(emp)}">${getInitials(name)}</div>
+            <span class="emp-name">${name}</span>
           </div>
         </td>
-        <td>${emp.position}</td>
-        <td>${emp.dept}</td>
-        <td>${fmtDate(emp.joining)}</td>
-        <td><span class="badge ${emp.status.toLowerCase()}">${emp.status}</span></td>
+        <td>${pos}</td>
+        <td>${dept}</td>
+        <td>${fmtDate(emp.hire_date || emp.joining)}</td>
+        <td><span class="badge ${status.toLowerCase()}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></td>
       `;
       tr.addEventListener('click', () => selectEmployee(origIdx));
       tbody.appendChild(tr);
@@ -844,16 +932,20 @@
     if (idx < 0 || idx >= employees.length) return;
     selectedIdx = idx;
     const emp = employees[idx];
-    document.getElementById('detailAvatar').textContent = getInitials(emp.name);
-    document.getElementById('detailAvatar').style.background = avatarColors[emp.color];
-    document.getElementById('detailName').textContent = emp.name;
-    document.getElementById('detailRole').textContent = emp.position;
-    document.getElementById('dPos').textContent = emp.position;
-    document.getElementById('dDept').textContent = emp.dept;
-    document.getElementById('dJoin').textContent = fmtDate(emp.joining);
-    document.getElementById('dSalary').textContent = fmtSalary(emp.salary);
-    document.getElementById('dStatus').innerHTML = `<span class="badge ${emp.status.toLowerCase()}">${emp.status}</span>`;
-    document.getElementById('dLogin').textContent = emp.login || '—';
+    const name = empName(emp);
+    const dept = emp.department_name || emp.dept || '—';
+    const pos  = emp.position || emp.job_title || '—';
+    const status = emp.status || 'active';
+    document.getElementById('detailAvatar').textContent = getInitials(name);
+    document.getElementById('detailAvatar').style.background = empColor(emp);
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailRole').textContent = pos;
+    document.getElementById('dPos').textContent = pos;
+    document.getElementById('dDept').textContent = dept;
+    document.getElementById('dJoin').textContent = fmtDate(emp.hire_date || emp.joining);
+    document.getElementById('dSalary').textContent = fmtSalary(emp.base_salary || emp.salary);
+    document.getElementById('dStatus').innerHTML = `<span class="badge ${status.toLowerCase()}">${status.charAt(0).toUpperCase()+status.slice(1)}</span>`;
+    document.getElementById('dLogin').textContent = fmtDate(emp.updated_at) || '—';
     renderTable(getFiltered());
   }
 
@@ -869,7 +961,7 @@
   }
   function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
 
-  function saveEmployee() {
+  async function saveEmployee() {
     const first = document.getElementById('fFirstName').value.trim();
     const last  = document.getElementById('fLastName').value.trim();
     const pos   = document.getElementById('fPosition').value.trim();
@@ -877,23 +969,30 @@
     const join  = document.getElementById('fJoining').value;
     const sal   = document.getElementById('fSalary').value;
     const stat  = document.getElementById('fStatus').value;
+    const email = document.getElementById('fEmail').value.trim();
 
     if (!first || !last || !pos || !dept || !join) {
       showToast('Please fill in all required fields.', 'error');
       return;
     }
 
-    const name = `${first} ${last}`;
-    const colorIdx = employees.length % avatarColors.length;
-    const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-
-    employees.push({ name, position: pos, dept, joining: join, salary: sal || '0', status: stat, login: today, color: colorIdx });
-
-    updateStats();
-    selectedIdx = employees.length - 1;
-    selectEmployee(selectedIdx);
-    closeAddModal();
-    showToast(`${name} added successfully!`, 'success');
+    try {
+      await apiCreateEmployee({
+        first_name: first,
+        last_name: last,
+        job_title: pos,
+        department_name: dept,
+        hire_date: join,
+        base_salary: sal ? Number(sal) : null,
+        status: stat.toLowerCase(),
+        email: email || undefined
+      });
+      showToast(`${first} ${last} added successfully!`, 'success');
+      closeAddModal();
+      await loadEmployees();
+    } catch (e) {
+      showToast(e.message || 'Failed to save employee.', 'error');
+    }
   }
 
   /* ── DELETE MODAL ── */
@@ -904,27 +1003,21 @@
     }
     const emp = employees[selectedIdx];
     document.getElementById('deleteConfirmText').textContent =
-      `You are about to delete "${emp.name}". This action cannot be undone.`;
+      `You are about to delete "${empName(emp)}". This action cannot be undone.`;
     document.getElementById('deleteModal').classList.add('open');
   }
   function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     const emp = employees[selectedIdx];
-    employees.splice(selectedIdx, 1);
-    selectedIdx = Math.min(selectedIdx, employees.length - 1);
-    updateStats();
-    if (employees.length > 0) {
-      selectEmployee(selectedIdx);
-    } else {
-      renderTable([]);
-      // Reset panel
-      ['detailName','detailRole','dPos','dDept','dJoin','dSalary','dLogin'].forEach(id => document.getElementById(id).textContent = '—');
-      document.getElementById('dStatus').innerHTML = '—';
-      document.getElementById('detailAvatar').textContent = '–';
+    try {
+      await apiDeleteEmployee(emp.id);
+      closeDeleteModal();
+      showToast(`${empName(emp)} has been deleted.`, 'error');
+      await loadEmployees();
+    } catch(e) {
+      showToast(e.message || 'Failed to delete employee.', 'error');
     }
-    closeDeleteModal();
-    showToast(`${emp.name} has been deleted.`, 'error');
   }
 
   /* ── CLOSE ON OVERLAY CLICK ── */
@@ -941,10 +1034,25 @@
     toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3000);
   }
 
+  /* ── LOAD ── */
+  async function loadEmployees() {
+    try {
+      employees = await apiListEmployees({ limit: 200 });
+    } catch (e) {
+      showToast('Could not load employees: ' + e.message, 'error');
+      employees = [];
+    }
+    updateStats();
+    renderTable(getFiltered());
+    if (employees.length > 0 && selectedIdx < 0) {
+      selectEmployee(0);
+    } else if (employees.length > 0) {
+      selectEmployee(Math.min(selectedIdx, employees.length - 1));
+    }
+  }
+
   // Init
-  updateStats();
-  renderTable(employees);
-  selectEmployee(selectedIdx);
+  loadEmployees();
 </script>
 </body>
 </html>

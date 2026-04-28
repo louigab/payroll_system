@@ -396,10 +396,10 @@
 
   <!-- Staff mini-profile -->
   <div class="sidebar-profile">
-    <div class="sp-avatar">JD</div>
+    <div class="sp-avatar" id="spAvatar">JD</div>
     <div>
-      <div class="sp-name">John Doe</div>
-      <div class="sp-role">Product Designer · IT</div>
+      <div class="sp-name" id="spName">John Doe</div>
+      <div class="sp-role" id="spRole">Product Designer · IT</div>
       <span class="sp-badge">● Active</span>
     </div>
   </div>
@@ -458,7 +458,7 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <span class="notif-dot" id="topNotifDot"></span>
       </button>
-      <div class="staff-avatar">JD</div>
+      <div class="staff-avatar" id="topAvatar">JD</div>
     </div>
   </header>
 
@@ -470,12 +470,12 @@
       <div style="position:absolute;right:-50px;top:-50px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%;"></div>
       <div>
         <p style="color:rgba(255,255,255,.75);font-size:13px;margin-bottom:4px;">Good morning 👋</p>
-        <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Welcome back, John Doe</h2>
+        <h2 id="welcomeH2" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Welcome back, John Doe</h2>
         <p style="font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6;">Your April 2025 payslip is ready. Next salary release: <strong style="color:#fff;">April 30, 2025</strong>.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;">
         <div style="background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:14px 22px;text-align:center;">
-          <div style="font-family:'Sora',sans-serif;font-size:26px;font-weight:800;color:#fff;">₱101,800</div>
+          <div id="heroNetPay" style="font-family:'Sora',sans-serif;font-size:26px;font-weight:800;color:#fff;">₱101,800</div>
           <div style="font-size:11px;color:rgba(255,255,255,.75);">Net Pay — April</div>
         </div>
         <button onclick="showView('payslips')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">📄 Download Payslip</button>
@@ -486,7 +486,7 @@
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
       <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
         <div style="width:42px;height:42px;border-radius:12px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;">💰</div>
-        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">₱101,800</div>
+        <div id="statNetPay" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">₱101,800</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Net Pay (April)</div>
       </div>
       <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
@@ -549,10 +549,10 @@
   <!-- ════════ VIEW: PROFILE ════════ -->
   <div class="view" id="view-profile">
     <div class="profile-hero">
-      <div class="ph-avatar">JD</div>
+      <div class="ph-avatar" id="phAvatar">JD</div>
       <div class="ph-info">
-        <h2>John Doe</h2>
-        <p class="ph-pos">Product Designer · IT Department</p>
+        <h2 id="phName">John Doe</h2>
+        <p class="ph-pos" id="phPos">Product Designer · IT Department</p>
         <div class="ph-pills">
           <span class="ph-pill">🟢 Active</span>
           <span class="ph-pill">Employee ID: BFAR-2023-047</span>
@@ -565,12 +565,12 @@
       <div class="card-header"><div><h3>Personal Information</h3><p>Your personal and contact details</p></div></div>
       <div class="card-body">
         <div class="detail-grid">
-          <div class="detail-item"><div class="di-label">Full Name</div><div class="di-val">John Michael Doe</div></div>
+          <div class="detail-item"><div class="di-label">Full Name</div><div class="di-val" id="profileFullName">John Michael Doe</div></div>
           <div class="detail-item"><div class="di-label">Date of Birth</div><div class="di-val">March 15, 1992</div></div>
           <div class="detail-item"><div class="di-label">Gender</div><div class="di-val">Male</div></div>
           <div class="detail-item"><div class="di-label">Civil Status</div><div class="di-val">Single</div></div>
           <div class="detail-item"><div class="di-label">Contact Number</div><div class="di-val">+63 912 345 6789</div></div>
-          <div class="detail-item"><div class="di-label">Email Address</div><div class="di-val">john.doe@bfar.gov.ph</div></div>
+          <div class="detail-item"><div class="di-label">Email Address</div><div class="di-val" id="profileEmail">john.doe@bfar.gov.ph</div></div>
           <div class="detail-item" style="grid-column:1/-1"><div class="di-label">Home Address</div><div class="di-val">123 Quezon Avenue, Quezon City, Metro Manila 1100</div></div>
         </div>
       </div>
@@ -580,14 +580,14 @@
       <div class="card-header"><div><h3>Employment Details</h3><p>Your current role and employment status</p></div></div>
       <div class="card-body">
         <div class="detail-grid">
-          <div class="detail-item"><div class="di-label">Employee ID</div><div class="di-val">BFAR-2023-047</div></div>
-          <div class="detail-item"><div class="di-label">Position</div><div class="di-val">Product Designer</div></div>
-          <div class="detail-item"><div class="di-label">Department</div><div class="di-val">Information Technology</div></div>
+          <div class="detail-item"><div class="di-label">Employee ID</div><div class="di-val" id="profileEmpId">BFAR-2023-047</div></div>
+          <div class="detail-item"><div class="di-label">Position</div><div class="di-val" id="profilePosition">Product Designer</div></div>
+          <div class="detail-item"><div class="di-label">Department</div><div class="di-val" id="profileDept">Information Technology</div></div>
           <div class="detail-item"><div class="di-label">Employment Type</div><div class="di-val">Permanent</div></div>
-          <div class="detail-item"><div class="di-label">Date Hired</div><div class="di-val">January 10, 2023</div></div>
+          <div class="detail-item"><div class="di-label">Date Hired</div><div class="di-val" id="profileHireDate">January 10, 2023</div></div>
           <div class="detail-item"><div class="di-label">Years of Service</div><div class="di-val">2 years, 3 months</div></div>
           <div class="detail-item"><div class="di-label">Salary Grade</div><div class="di-val">SG-18</div></div>
-          <div class="detail-item"><div class="di-label">Status</div><div class="di-val" style="color:var(--green);font-weight:700;">● Active</div></div>
+          <div class="detail-item"><div class="di-label">Status</div><div class="di-val" id="profileStatus" style="color:var(--green);font-weight:700;">● Active</div></div>
         </div>
       </div>
     </div>
@@ -610,7 +610,7 @@
     <div class="salary-hero">
       <div>
         <div class="sh-label">April 2025 — Net Pay</div>
-        <div class="sh-val">₱101,800.00</div>
+        <div class="sh-val" id="salaryHeroVal">₱101,800.00</div>
         <div class="sh-period">Pay period: April 1–30, 2025 · Released April 30, 2025</div>
       </div>
       <div class="sh-status">✅ Released</div>
@@ -622,12 +622,12 @@
         <div class="bs-header" style="background:var(--green-light);">
           <span class="bs-dot" style="background:var(--green);"></span>Earnings
         </div>
-        <div class="bs-row"><span class="bsr-label">Basic Pay</span><span class="bsr-val">₱85,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Basic Pay</span><span class="bsr-val" id="sbBasicPay">₱85,000</span></div>
         <div class="bs-row"><span class="bsr-label">Rice Subsidy</span><span class="bsr-val">₱2,000</span></div>
         <div class="bs-row"><span class="bsr-label">Transportation</span><span class="bsr-val">₱2,000</span></div>
         <div class="bs-row"><span class="bsr-label">PERA Allowance</span><span class="bsr-val">₱2,000</span></div>
         <div class="bs-row"><span class="bsr-label">Clothing Allowance</span><span class="bsr-val">₱6,000</span></div>
-        <div class="bs-total"><span>Total Earnings</span><span style="color:var(--green);">₱97,000</span></div>
+        <div class="bs-total"><span>Total Earnings</span><span id="sbTotalEarnings" style="color:var(--green);">₱97,000</span></div>
         <div class="bar-visual"><div class="bar-visual-fill" style="width:88%;background:var(--green);"></div></div>
       </div>
 
@@ -652,18 +652,18 @@
       <div style="padding:8px 22px 22px;display:flex;flex-direction:column;gap:10px;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius-sm);background:var(--green-light);border:1px solid #a7f3d0;">
           <span style="font-size:14px;font-weight:600;">Gross Pay</span>
-          <span style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--green);">₱97,000.00</span>
+          <span id="sbSummaryGross" style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--green);">₱97,000.00</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius-sm);background:var(--red-light);border:1px solid #fecaca;">
           <span style="font-size:14px;font-weight:600;">Total Deductions</span>
-          <span style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--red);">- ₱15,200.00</span>
+          <span id="sbSummaryDed" style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--red);">- ₱15,200.00</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#1d4ed8,#3b82f6);">
           <div>
             <div style="font-size:14px;font-weight:700;color:#fff;">Net Pay</div>
             <div style="font-size:11.5px;color:rgba(255,255,255,.7);">Take-home for April 2025</div>
           </div>
-          <span style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;">₱101,800.00</span>
+          <span id="sbSummaryNet" style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;">₱101,800.00</span>
         </div>
       </div>
     </div>
@@ -902,6 +902,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script>
   const viewTitles = {
     dashboard: ['Staff Portal', 'My Dashboard'],
@@ -983,7 +984,7 @@
     document.getElementById('logoutModal').classList.remove('open');
   }
   function doLogout() {
-    window.location.href = 'login.html';
+    apiLogout();
   }
   document.getElementById('logoutModal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeLogout();
@@ -999,6 +1000,75 @@
   }
 
   updateNotifBadge();
+
+  // ─── INIT: load real user/employee data from API ───
+  (async function initStaff() {
+    requireAuth();
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = val; };
+    const fmt = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:0,maximumFractionDigits:0});
+    const fmt2 = n => '₱' + Number(n || 0).toLocaleString('en-PH', {minimumFractionDigits:2,maximumFractionDigits:2});
+
+    // Update from token immediately (name may be email-based until employee loads)
+    const tokenName = user.name || user.email || '';
+    const tokenInitials = tokenName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    set('spName', tokenName); set('spAvatar', tokenInitials);
+    set('topAvatar', tokenInitials); set('phAvatar', tokenInitials);
+    set('phName', tokenName); set('profileFullName', tokenName);
+    set('welcomeH2', 'Welcome back, ' + tokenName);
+
+    // Try to find this user's employee record
+    let emp = null;
+    try {
+      const emps = await apiListEmployees({ limit: 200 });
+      emp = emps.find(e => e.email && e.email.toLowerCase() === (user.email || '').toLowerCase());
+    } catch (_) {}
+
+    if (!emp) return; // DB not ready — basic name already populated above
+
+    const fullName = [emp.first_name, emp.last_name].filter(Boolean).join(' ') || tokenName;
+    const initials = fullName.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    const roleLabel = [emp.job_title, emp.department_name].filter(Boolean).join(' · ');
+
+    set('spAvatar', initials); set('spName', fullName); set('spRole', roleLabel);
+    set('topAvatar', initials); set('phAvatar', initials); set('phName', fullName);
+    set('phPos', (emp.job_title || '') + (emp.department_name ? ' · ' + emp.department_name + ' Department' : ''));
+    set('welcomeH2', 'Welcome back, ' + fullName);
+    set('profileFullName', fullName);
+    set('profileEmail', emp.email || '');
+    set('profilePosition', emp.job_title || '—');
+    set('profileDept', emp.department_name || '—');
+    set('profileEmpId', emp.id || '—');
+    if (emp.status) set('profileStatus', '● ' + (emp.status.charAt(0).toUpperCase() + emp.status.slice(1)));
+    if (emp.hire_date) {
+      const hd = new Date(emp.hire_date + 'T00:00:00');
+      set('profileHireDate', hd.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}));
+    }
+
+    // Salary computation from base_salary
+    const basic = Number(emp.base_salary || 0);
+    if (basic > 0) {
+      const allowances = Math.round(basic * 0.188);  // ~rice+transport+pera+clothing
+      const tax = Math.round(basic * 0.10);
+      const sss = 1350;
+      const philhealth = Math.round(basic * 0.0125);
+      const pagibig = 200;
+      const totalDed = tax + sss + philhealth + pagibig;
+      const gross = basic + allowances;
+      const net = gross - totalDed;
+
+      set('sbBasicPay', fmt(basic));
+      set('sbTotalEarnings', fmt(gross));
+      set('sbSummaryGross', fmt2(gross));
+      set('sbSummaryDed', '- ' + fmt2(totalDed));
+      set('sbSummaryNet', fmt2(net));
+      set('salaryHeroVal', fmt2(net));
+      set('heroNetPay', fmt(net));
+      set('statNetPay', fmt(net));
+    }
+  })();
 </script>
 </body>
 </html>

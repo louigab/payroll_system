@@ -213,16 +213,16 @@
     </div>
 
     <div class="hint-text" id="hintText">
-      Demo — Admin: <strong>admin / admin123</strong>
+      Demo — Admin: <strong>admin@payroll.test</strong> / <strong>password123</strong>
     </div>
 
-    <div class="error-msg" id="errorMsg">Incorrect username or password. Please try again.</div>
+    <div class="error-msg" id="errorMsg">Incorrect email or password. Please try again.</div>
 
     <div class="form-group">
-      <label>Username</label>
+      <label>Email Address</label>
       <div class="input-wrap">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <input type="text" id="usernameInput" placeholder="Enter your username" />
+        <input type="email" id="emailInput" placeholder="Enter your email" autocomplete="email" />
       </div>
     </div>
 
@@ -236,19 +236,20 @@
       </div>
     </div>
 
-    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
 
     <div class="footer-note">Bureau of Fisheries and Aquatic Resources &copy; 2025</div>
   </div>
 </div>
 
+<script src="api.js"></script>
 <script>
   let currentRole = 'admin';
 
-  const credentials = {
-    admin: { username:'admin', password:'admin123', dest:'dashboard.html' },
-    staff: { username:'staff', password:'staff123', dest:'staff.html' }
-  };
+  // If already logged in, skip login page
+  if (getToken()) {
+    window.location.href = 'dashboard.html';
+  }
 
   function setRole(role) {
     currentRole = role;
@@ -257,8 +258,8 @@
     });
     document.getElementById('hintText').innerHTML =
       role==='admin'
-        ? 'Demo — Admin: <strong>admin / admin123</strong>'
-        : 'Demo — Staff: <strong>staff / staff123</strong>';
+        ? 'Demo — Admin: <strong>admin@payroll.test</strong> / <strong>password123</strong>'
+        : 'Demo — Staff: <strong>staff@payroll.test</strong> / <strong>password123</strong>';
     document.getElementById('errorMsg').style.display='none';
   }
 
@@ -267,16 +268,33 @@
     inp.type = inp.type==='password' ? 'text' : 'password';
   }
 
-  function doLogin() {
-    const u = document.getElementById('usernameInput').value.trim();
-    const p = document.getElementById('passwordInput').value.trim();
-    const cred = credentials[currentRole];
+  async function doLogin() {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
     const err = document.getElementById('errorMsg');
-    if (u===cred.username && p===cred.password) {
-      err.style.display='none';
-      window.location.href = cred.dest;
-    } else {
-      err.style.display='block';
+    const btn = document.getElementById('loginBtn');
+
+    if (!email || !password) {
+      err.textContent = 'Please enter your email and password.';
+      err.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+    err.style.display = 'none';
+
+    try {
+      const result = await apiLogin(email, password);
+      const roles = result.user.roles || [];
+      window.location.href = roles.includes('admin') || roles.includes('payroll') || roles.includes('hr')
+        ? 'dashboard.html'
+        : 'staff.html';
+    } catch (e) {
+      err.textContent = e.message || 'Incorrect email or password. Please try again.';
+      err.style.display = 'block';
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
     }
   }
 

@@ -137,6 +137,14 @@
     color:#fff;font-weight:700;font-size:15px;
     cursor:pointer;border:2px solid var(--blue-light);
   }
+  .topbar-drop{
+    position:absolute;top:calc(100% + 8px);right:0;
+    background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-md);z-index:200;min-width:160px;
+  }
+  .drop-item{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text);}
+  .drop-item:hover{background:var(--blue-lighter);color:var(--blue);}
+  .drop-divider{height:1px;background:var(--border);margin:4px 0;}
   .date-badge{
     background:var(--blue-lighter);
     border:1px solid var(--blue-light);
@@ -468,14 +476,25 @@
     <div class="topbar-right">
       <div class="search-bar">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" placeholder="Search now" />
+        <input type="text" placeholder="Search now" id="dashSearch" oninput="dashSearchNow(this.value)" />
       </div>
       <span class="date-badge" id="liveDateBadge"></span>
-      <div class="notif-btn">
+      <div class="notif-btn" onclick="toggleDropdown('notifDrop')" style="position:relative">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <span class="notif-dot"></span>
+        <div id="notifDrop" class="topbar-drop" style="display:none;min-width:240px">
+          <div class="drop-item">✅ Payslips generated for this month</div>
+          <div class="drop-item">⚠️ 2 compliance flags need attention</div>
+          <div class="drop-item">👤 New employee added recently</div>
+        </div>
       </div>
-      <div class="avatar">A</div>
+      <div class="avatar" onclick="toggleDropdown('avatarDrop')" style="cursor:pointer;position:relative" id="topAvatar">A
+        <div id="avatarDrop" class="topbar-drop" style="display:none">
+          <div class="drop-item" id="dropUserName" style="font-weight:600">Admin</div>
+          <div class="drop-divider"></div>
+          <div class="drop-item" onclick="apiLogout()">🚪 Logout</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -495,11 +514,11 @@
       </div>
       <div class="hero-right">
         <div class="hero-stat">
-          <div class="hs-val">103</div>
+          <div class="hs-val" id="heroTotalEmp">—</div>
           <div class="hs-label">Total Employees</div>
         </div>
         <div class="hero-stat">
-          <div class="hs-val">₱2.1M</div>
+          <div class="hs-val" id="heroMonthlyPayroll">—</div>
           <div class="hs-label">Monthly Payroll</div>
         </div>
       </div>
@@ -514,7 +533,7 @@
           </div>
           <span class="stat-trend trend-up">↑ 4%</span>
         </div>
-        <div class="stat-value">103</div>
+        <div class="stat-value" id="statTotalEmp">—</div>
         <div class="stat-label">Total Employees</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:82%;background:var(--blue);"></div></div>
       </div>
@@ -525,7 +544,7 @@
           </div>
           <span class="stat-trend trend-up">↑ 2%</span>
         </div>
-        <div class="stat-value">95</div>
+        <div class="stat-value" id="statPresent">—</div>
         <div class="stat-label">Present Today</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:92%;background:var(--green);"></div></div>
       </div>
@@ -536,7 +555,7 @@
           </div>
           <span class="stat-trend trend-flat">→ 0%</span>
         </div>
-        <div class="stat-value">5</div>
+        <div class="stat-value" id="statLate">—</div>
         <div class="stat-label">Late Arrivals</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:18%;background:var(--amber);"></div></div>
       </div>
@@ -547,7 +566,7 @@
           </div>
           <span class="stat-trend trend-up">↑ 8%</span>
         </div>
-        <div class="stat-value">₱2.1M</div>
+        <div class="stat-value" id="statMonthlyPayroll">—</div>
         <div class="stat-label">This Month's Payroll</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:67%;background:var(--violet);"></div></div>
       </div>
@@ -563,7 +582,7 @@
             <h3>Recent Employees</h3>
             <p>Latest additions to the roster</p>
           </div>
-          <a class="card-link" href="bfar-payroll.html">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a class="card-link" href="employee.html">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
         <table class="mini-table">
           <thead>
@@ -573,27 +592,8 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">GH</div><span class="emp-nm">Guy Hawkins</span></div></td>
-              <td>HR</td><td><span class="badge active">Active</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#10b981,#059669)">FM</div><span class="emp-nm">Floyd Miles</span></div></td>
-              <td>HR</td><td><span class="badge active">Active</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">JD</div><span class="emp-nm">John Doe</span></div></td>
-              <td>IT</td><td><span class="badge active">Active</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#ef4444,#dc2626)">WW</div><span class="emp-nm">Wade Warren</span></div></td>
-              <td>IT</td><td><span class="badge active">Active</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">JC</div><span class="emp-nm">Jane Cooper</span></div></td>
-              <td>Finance</td><td><span class="badge new">New</span></td>
-            </tr>
+          <tbody id="recentEmpTbody">
+            <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -665,9 +665,9 @@
         <div class="card-header">
           <div class="card-header-left">
             <h3>Today's Attendance</h3>
-            <p>April 20, 2025 — live snapshot</p>
+              <p id="attendanceDateLabel">Today — live snapshot</p>
           </div>
-          <a class="card-link" href="#">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a class="card-link" href="attendance.html">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
         <table class="mini-table">
           <thead>
@@ -678,31 +678,8 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">GH</div><span class="emp-nm">Guy Hawkins</span></div></td>
-              <td>8:02 AM</td><td>—</td><td><span class="badge present">Present</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">JD</div><span class="emp-nm">John Doe</span></div></td>
-              <td>8:47 AM</td><td>—</td><td><span class="badge late">Late</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#10b981,#059669)">FM</div><span class="emp-nm">Floyd Miles</span></div></td>
-              <td>7:55 AM</td><td>—</td><td><span class="badge present">Present</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">JC</div><span class="emp-nm">Jane Cooper</span></div></td>
-              <td>—</td><td>—</td><td><span class="badge absent">Absent</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#ef4444,#dc2626)">WW</div><span class="emp-nm">Wade Warren</span></div></td>
-              <td>8:10 AM</td><td>—</td><td><span class="badge present">Present</span></td>
-            </tr>
-            <tr>
-              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">JW</div><span class="emp-nm">Jenny Wilson</span></div></td>
-              <td>8:05 AM</td><td>—</td><td><span class="badge present">Present</span></td>
-            </tr>
+          <tbody id="attendanceTbody">
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -715,21 +692,21 @@
           <div class="card-header">
             <div class="card-header-left">
               <h3>Payroll Summary</h3>
-              <p>April 2025 cycle</p>
+              <p id="payrollCycleLabel">Current cycle</p>
             </div>
           </div>
           <div class="payroll-summary">
             <div class="pay-row">
               <div><div class="pr-label">Gross Pay</div><div class="pr-label-muted">Before deductions</div></div>
-              <div class="pr-val">₱2,450,000</div>
+              <div class="pr-val" id="dashGrossPay">—</div>
             </div>
             <div class="pay-row">
               <div><div class="pr-label">Total Deductions</div><div class="pr-label-muted">Tax, SSS, PhilHealth, Pag-IBIG</div></div>
-              <div class="pr-val" style="color:var(--red)">– ₱348,200</div>
+              <div class="pr-val" id="dashTotalDed" style="color:var(--red)">—</div>
             </div>
             <div class="pay-row highlight">
               <div><div class="pr-label">Net Payroll</div><div class="pr-label-muted">Released April 30</div></div>
-              <div class="pr-val">₱2,101,800</div>
+              <div class="pr-val" id="dashNetPay">—</div>
             </div>
           </div>
         </div>
@@ -782,19 +759,19 @@
         </div>
       </div>
       <div class="quick-actions">
-        <a class="qa-btn" href="bfar-payroll.html">
+        <a class="qa-btn" href="employee.html">
           <div class="qa-icon" style="background:var(--blue-light)">👥</div>
           <span class="qa-label">Manage Employees</span>
         </a>
-        <a class="qa-btn" href="#">
+        <a class="qa-btn" href="payroll.html">
           <div class="qa-icon" style="background:var(--green-light)">💸</div>
           <span class="qa-label">Run Payroll</span>
         </a>
-        <a class="qa-btn" href="#">
+        <a class="qa-btn" href="attendance.html">
           <div class="qa-icon" style="background:var(--amber-light)">🗓️</div>
           <span class="qa-label">View Attendance</span>
         </a>
-        <a class="qa-btn" href="#">
+        <a class="qa-btn" href="payroll.html">
           <div class="qa-icon" style="background:var(--violet-light)">📄</div>
           <span class="qa-label">Download Payslips</span>
         </a>
@@ -804,33 +781,249 @@
   </div><!-- /page -->
 </div><!-- /main -->
 
+<script src="api.js"></script>
 <script>
+  requireAuth();
+
+  // Set avatar initials from logged-in user
+  const _u = getCurrentUser();
+  if (_u) {
+    const initials = (_u.email || 'A').slice(0,1).toUpperCase();
+    const nameEl = document.getElementById('topAvatar');
+    if (nameEl) nameEl.childNodes[0].textContent = initials;
+    const dropName = document.getElementById('dropUserName');
+    if (dropName) dropName.textContent = _u.email || 'Admin';
+  }
+
+  // Dropdown toggle — closes when clicking outside
+  function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.style.display === 'block';
+    document.querySelectorAll('.topbar-drop').forEach(d => d.style.display = 'none');
+    el.style.display = isOpen ? 'none' : 'block';
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.notif-btn') && !e.target.closest('.avatar')) {
+      document.querySelectorAll('.topbar-drop').forEach(d => d.style.display = 'none');
+    }
+  });
+
+  // Dashboard search — filter recent employee table
+  function dashSearchNow(q) {
+    const term = q.toLowerCase().trim();
+    document.querySelectorAll('#recentEmpTbody tr').forEach(tr => {
+      tr.style.display = term === '' || tr.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+  }
+
   // Live date badge
   const d = new Date();
+  const todayStr = d.toISOString().split('T')[0];
   document.getElementById('liveDateBadge').textContent =
     d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-  // Bar chart
-  const data = [
-    {label:'Nov',val:1.8,dim:true},
-    {label:'Dec',val:1.95,dim:true},
-    {label:'Jan',val:2.0,dim:true},
-    {label:'Feb',val:1.9,dim:true},
-    {label:'Mar',val:2.05,dim:true},
-    {label:'Apr',val:2.1,dim:false},
+  // ── Helpers ──
+  const palette = [
+    'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+    'linear-gradient(135deg,#10b981,#059669)',
+    'linear-gradient(135deg,#f59e0b,#d97706)',
+    'linear-gradient(135deg,#ef4444,#dc2626)',
+    'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+    'linear-gradient(135deg,#06b6d4,#0284c7)',
+    'linear-gradient(135deg,#ec4899,#be185d)',
+    'linear-gradient(135deg,#84cc16,#4d7c0f)',
   ];
-  const max = Math.max(...data.map(d=>d.val));
-  const chart = document.getElementById('barChart');
-  data.forEach(item=>{
-    const col = document.createElement('div');
-    col.className = 'bar-col';
-    const pct = Math.round((item.val/max)*100);
-    col.innerHTML = `
-      <div style="font-size:10px;color:var(--text-muted);font-weight:600">₱${item.val}M</div>
-      <div class="bar-fill${item.dim?' dim':''}" style="height:${pct}%"></div>
-    `;
-    chart.appendChild(col);
-  });
+  function empColor(id) {
+    const idx = String(id).split('').reduce((a,c)=>a+c.charCodeAt(0),0) % palette.length;
+    return palette[idx];
+  }
+  function empInitials(emp) {
+    return ([emp.first_name, emp.last_name].filter(Boolean).join(' ') || emp.name || '?')
+      .split(/\s+/).map(p=>p[0]).join('').slice(0,2).toUpperCase();
+  }
+  function empFullName(emp) {
+    return [emp.first_name, emp.last_name].filter(Boolean).join(' ') || emp.name || '—';
+  }
+  function fmtMoney(n) {
+    if (n >= 1_000_000) return '₱' + (n/1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)     return '₱' + Math.round(n).toLocaleString();
+    return '₱' + n;
+  }
+  function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+
+  // ── Dynamic donut chart ──
+  function buildDonutChart(employees) {
+    const deptMap = {};
+    employees.forEach(e => {
+      const dept = e.department_name || 'Other';
+      deptMap[dept] = (deptMap[dept] || 0) + 1;
+    });
+    const deptPalette = ['#3b82f6','#10b981','#f59e0b','#7c3aed','#ef4444','#06b6d4','#cbd5e1'];
+    const depts = Object.entries(deptMap).sort((a,b) => b[1]-a[1]);
+    const total = employees.length;
+    if (total === 0) return;
+    const circ = 2 * Math.PI * 40;
+    let offset = 0;
+    const svgEl = document.querySelector('.donut-svg');
+    if (!svgEl) return;
+    svgEl.querySelectorAll('circle:not(:first-child), text').forEach(el => el.remove());
+    const ns = 'http://www.w3.org/2000/svg';
+    depts.forEach(([, count], i) => {
+      const arc = (count / total) * circ;
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx','55'); c.setAttribute('cy','55'); c.setAttribute('r','40');
+      c.setAttribute('fill','none'); c.setAttribute('stroke', deptPalette[i % deptPalette.length]);
+      c.setAttribute('stroke-width','16');
+      c.setAttribute('stroke-dasharray',`${arc.toFixed(1)} ${circ.toFixed(1)}`);
+      c.setAttribute('stroke-dashoffset',`-${offset.toFixed(1)}`);
+      c.setAttribute('transform','rotate(-90 55 55)');
+      svgEl.appendChild(c);
+      offset += arc;
+    });
+    const t1 = document.createElementNS(ns,'text');
+    t1.setAttribute('x','55'); t1.setAttribute('y','52'); t1.setAttribute('text-anchor','middle');
+    t1.setAttribute('font-size','13'); t1.setAttribute('font-weight','700');
+    t1.setAttribute('fill','#0f172a'); t1.setAttribute('font-family','Sora');
+    t1.textContent = total; svgEl.appendChild(t1);
+    const t2 = document.createElementNS(ns,'text');
+    t2.setAttribute('x','55'); t2.setAttribute('y','65'); t2.setAttribute('text-anchor','middle');
+    t2.setAttribute('font-size','9'); t2.setAttribute('fill','#94a3b8');
+    t2.setAttribute('font-family','DM Sans'); t2.textContent = 'total'; svgEl.appendChild(t2);
+    const legend = document.querySelector('.donut-legend');
+    if (legend) {
+      legend.innerHTML = depts.slice(0,5).map(([dept, count], i) =>
+        `<div class="legend-item"><div class="legend-dot" style="background:${deptPalette[i % deptPalette.length]}"></div>${dept}<span class="legend-val">${count}</span></div>`
+      ).join('');
+    }
+  }
+
+  // ── Dynamic bar chart ──
+  function buildBarChart(runs, employees) {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        label: d.toLocaleString('en',{month:'short'}),
+        key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      });
+    }
+    // Aggregate payroll runs by month
+    const byMonth = {};
+    runs.forEach(r => {
+      const mo = (r.period_start || r.created_at || '').slice(0,7);
+      if (mo) byMonth[mo] = (byMonth[mo] || 0) + Number(r.gross_pay || r.total_gross || 0);
+    });
+    // Fallback: if no runs but we have employees, show current month from base salaries
+    const curKey = months[months.length - 1].key;
+    if (runs.length === 0 && employees && employees.length > 0) {
+      const gross = employees.reduce((s,e) => s + Number(e.base_salary||0), 0);
+      if (gross > 0) byMonth[curKey] = gross;
+    }
+    const vals = months.map(m => byMonth[m.key] || 0);
+    const maxVal = Math.max(...vals, 1);
+    const chartEl = document.getElementById('barChart');
+    const axisEl  = document.querySelector('.bar-axis');
+    if (!chartEl) return;
+    chartEl.innerHTML = '';
+    vals.forEach((val, i) => {
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      const pct = Math.max(Math.round((val / maxVal) * 100), val > 0 ? 4 : 0);
+      const label = val > 0
+        ? (val >= 1_000_000 ? '₱'+(val/1_000_000).toFixed(1)+'M' : '₱'+Math.round(val/1000)+'K')
+        : '—';
+      col.innerHTML = `
+        <div style="font-size:10px;color:var(--text-muted);font-weight:600">${label}</div>
+        <div class="bar-fill${i < 5?' dim':''}" style="height:${pct}%"></div>
+      `;
+      chartEl.appendChild(col);
+    });
+    if (axisEl) axisEl.innerHTML = months.map(m => `<span>${m.label}</span>`).join('');
+  }
+
+  // ── Load data ──
+  (async function initDashboard() {
+    // Dynamic date labels
+    set('attendanceDateLabel', d.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}) + ' — live snapshot');
+    set('payrollCycleLabel', d.toLocaleString('en',{month:'long',year:'numeric'}) + ' cycle');
+
+    let allEmployees = [];
+
+    // Employees
+    try {
+      const employees = await apiListEmployees({ limit: 200 });
+      allEmployees = employees;
+      const total = employees.length;
+      set('heroTotalEmp', total);
+      set('statTotalEmp', total);
+
+      const recentBody = document.getElementById('recentEmpTbody');
+      if (recentBody) {
+        recentBody.innerHTML = employees.length > 0
+          ? employees.slice(0,5).map(emp => {
+              const status = emp.status || 'active';
+              const badgeCls = status === 'active' ? 'active' : status === 'new' ? 'new' : 'inactive';
+              return `<tr>
+                <td><div class="emp-cell"><div class="emp-av" style="background:${empColor(emp.id)}">${empInitials(emp)}</div><span class="emp-nm">${empFullName(emp)}</span></div></td>
+                <td>${emp.department_name || '—'}</td>
+                <td><span class="badge ${badgeCls}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></td>
+              </tr>`;
+            }).join('')
+          : '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">No employees found</td></tr>';
+      }
+
+      const totalGross = employees.reduce((s,e) => s + Number(e.base_salary||0), 0);
+      if (totalGross > 0) {
+        const totalDed = Math.round(totalGross * 0.12);
+        const totalNet = totalGross - totalDed;
+        set('heroMonthlyPayroll', fmtMoney(totalGross));
+        set('statMonthlyPayroll', fmtMoney(totalGross));
+        set('dashGrossPay', '₱' + totalGross.toLocaleString());
+        set('dashTotalDed', '– ₱' + totalDed.toLocaleString());
+        set('dashNetPay', '₱' + totalNet.toLocaleString());
+      }
+
+      buildDonutChart(employees);
+    } catch(_) {}
+
+    // Today's attendance
+    try {
+      const records = await apiListAttendance({ startDate: todayStr, endDate: todayStr, limit: 200 });
+      const empMap = {};
+      allEmployees.forEach(e => empMap[e.id] = e);
+      const presentCount = records.filter(r => r.status === 'present').length;
+      const lateCount    = records.filter(r => r.status === 'late').length;
+      set('statPresent', records.length > 0 ? presentCount : 0);
+      set('statLate',    records.length > 0 ? lateCount    : 0);
+      const attendBody = document.getElementById('attendanceTbody');
+      if (attendBody) {
+        attendBody.innerHTML = records.length > 0
+          ? records.slice(0,6).map(rec => {
+              const emp = empMap[rec.employee_id] || {};
+              const name = empFullName(emp) || 'Employee #' + rec.employee_id;
+              const ti = rec.time_in  ? rec.time_in.slice(0,5)  : '—';
+              const to = rec.time_out ? rec.time_out.slice(0,5) : '—';
+              const st = rec.status || 'present';
+              const badgeCls = st === 'present' ? 'present' : st === 'late' ? 'late' : 'absent';
+              return `<tr>
+                <td><div class="emp-cell"><div class="emp-av" style="background:${empColor(rec.employee_id)}">${empInitials(emp)}</div><span class="emp-nm">${name}</span></div></td>
+                <td>${ti}</td><td>${to}</td><td><span class="badge ${badgeCls}">${st.charAt(0).toUpperCase()+st.slice(1)}</span></td>
+              </tr>`;
+            }).join('')
+          : '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No attendance records for today</td></tr>';
+      }
+    } catch(_) {}
+
+    // Payroll runs → bar chart
+    try {
+      const runs = await apiListPayrollRuns({ limit: 50 });
+      buildBarChart(runs, allEmployees);
+    } catch(_) {
+      buildBarChart([], allEmployees);
+    }
+  })();
 </script>
 </body>
 </html>
