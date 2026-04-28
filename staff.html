@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll – Staff Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:        #1d4ed8;
+    --blue-mid:    #3b82f6;
+    --blue-light:  #dbeafe;
+    --blue-lighter:#eff6ff;
+    --blue-dark:   #1e3a8a;
+    --green:       #10b981;
+    --green-light: #d1fae5;
+    --amber:       #f59e0b;
+    --amber-light: #fef3c7;
+    --red:         #ef4444;
+    --red-light:   #fee2e2;
+    --violet:      #7c3aed;
+    --violet-light:#ede9fe;
+    --bg:          #f0f4fb;
+    --card:        #ffffff;
+    --text:        #0f172a;
+    --text-muted:  #64748b;
+    --text-light:  #94a3b8;
+    --border:      #e2e8f0;
+    --shadow:      0 2px 16px rgba(29,78,216,.07);
+    --shadow-md:   0 8px 32px rgba(29,78,216,.13);
+    --radius:      16px;
+    --radius-sm:   10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{
+    width:224px;min-height:100vh;
+    background:var(--card);
+    display:flex;flex-direction:column;
+    padding:28px 16px 24px;
+    position:fixed;left:0;top:0;bottom:0;
+    border-right:1px solid var(--border);z-index:10;
+  }
+  .logo{
+    font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:32px;padding:0 8px;line-height:1.3;
+  }
+  .logo-icon{
+    width:36px;height:36px;flex-shrink:0;
+    background:var(--blue);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:17px;font-weight:800;
+  }
+
+  /* staff profile mini card in sidebar */
+  .sidebar-profile{
+    background:var(--blue-lighter);
+    border:1px solid var(--blue-light);
+    border-radius:var(--radius-sm);
+    padding:14px;margin-bottom:20px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .sp-avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:15px;flex-shrink:0;
+  }
+  .sp-name{font-size:13px;font-weight:700;color:var(--text);}
+  .sp-role{font-size:11px;color:var(--text-muted);}
+  .sp-badge{
+    font-size:10px;font-weight:700;
+    background:var(--green-light);color:var(--green);
+    padding:2px 7px;border-radius:100px;margin-top:3px;display:inline-block;
+  }
+
+  .nav{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 14px;border-radius:var(--radius-sm);
+    font-size:13.5px;font-weight:500;color:var(--text-muted);
+    cursor:pointer;transition:all .18s;border:none;background:none;
+    width:100%;text-align:left;
+  }
+  .nav-item:hover{background:var(--blue-light);color:var(--blue);}
+  .nav-item.active{background:var(--blue);color:#fff;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .nav-item .notif-badge{
+    margin-left:auto;
+    background:var(--red);color:#fff;
+    font-size:10px;font-weight:700;
+    padding:2px 6px;border-radius:100px;
+  }
+
+  .sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:4px;}
+  .danger-item{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 14px;border-radius:var(--radius-sm);
+    font-size:13.5px;font-weight:500;color:var(--red);
+    cursor:pointer;transition:background .15s;border:none;background:none;width:100%;text-align:left;
+  }
+  .danger-item:hover{background:var(--red-light);}
+  .danger-item svg{width:18px;height:18px;flex-shrink:0;}
+
+  /* ── MAIN ── */
+  .main{margin-left:224px;flex:1;display:flex;flex-direction:column;}
+
+  /* ── TOPBAR ── */
+  .topbar{
+    background:#fff;padding:16px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:5;
+  }
+  .topbar-title{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;}
+  .topbar-sub{font-size:13px;color:var(--text-muted);}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .notif-btn{
+    width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--border);background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;position:relative;transition:background .15s;
+  }
+  .notif-btn:hover{background:var(--blue-light);}
+  .notif-btn svg{width:18px;height:18px;color:var(--text-muted);}
+  .notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid #fff;}
+  .staff-avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:15px;
+    border:2px solid var(--blue-light);cursor:pointer;
+  }
+
+  /* ── VIEWS ── */
+  .view{display:none;padding:28px 32px;flex-direction:column;gap:22px;}
+  .view.active{display:flex;}
+
+  /* ── CARDS ── */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 12px;}
+  .card-header h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;}
+  .card-header p{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+  .card-body{padding:0 22px 22px;}
+
+  /* ── PROFILE HERO ── */
+  .profile-hero{
+    background:linear-gradient(120deg,#1e3a8a 0%,#1d4ed8 50%,#3b82f6 100%);
+    border-radius:var(--radius);
+    padding:32px;
+    display:flex;align-items:center;gap:24px;
+    position:relative;overflow:hidden;
+    box-shadow:0 8px 32px rgba(29,78,216,.25);
+  }
+  .profile-hero::before{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:rgba(255,255,255,.06);border-radius:50%;}
+  .ph-avatar{
+    width:88px;height:88px;border-radius:50%;
+    background:rgba(255,255,255,.2);
+    border:3px solid rgba(255,255,255,.5);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Sora',sans-serif;font-size:32px;font-weight:800;color:#fff;
+    flex-shrink:0;
+  }
+  .ph-info h2{font-family:'Sora',sans-serif;font-size:24px;font-weight:800;color:#fff;margin-bottom:4px;}
+  .ph-info .ph-pos{font-size:14px;color:rgba(255,255,255,.8);margin-bottom:10px;}
+  .ph-pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .ph-pill{
+    background:rgba(255,255,255,.15);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25);
+    color:#fff;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;
+  }
+
+  /* ── DETAIL GRID ── */
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .detail-item{
+    background:var(--blue-lighter);
+    border:1px solid var(--blue-light);
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+  }
+  .detail-item .di-label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+  .detail-item .di-val{font-size:14px;font-weight:700;color:var(--text);}
+
+  /* ── SALARY BREAKDOWN ── */
+  .salary-hero{
+    background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+    border-radius:var(--radius);padding:24px 28px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 8px 28px rgba(29,78,216,.25);
+  }
+  .sh-label{font-size:13px;color:rgba(255,255,255,.8);margin-bottom:4px;}
+  .sh-val{font-family:'Sora',sans-serif;font-size:38px;font-weight:800;color:#fff;}
+  .sh-period{font-size:12px;color:rgba(255,255,255,.65);margin-top:4px;}
+  .sh-status{
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    color:#fff;padding:8px 18px;border-radius:100px;font-size:13px;font-weight:700;
+  }
+  .breakdown-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .breakdown-section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .bs-header{
+    padding:14px 20px;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);
+  }
+  .bs-header .bs-dot{width:10px;height:10px;border-radius:3px;}
+  .bs-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 20px;border-bottom:1px solid var(--border);font-size:13.5px;
+  }
+  .bs-row:last-child{border-bottom:none;}
+  .bs-row .bsr-label{color:var(--text-muted);}
+  .bs-row .bsr-val{font-weight:700;}
+  .bs-total{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;font-size:14px;font-weight:700;
+    border-top:2px solid var(--border);
+  }
+  .bar-visual{
+    margin:0 20px 14px;height:8px;border-radius:100px;background:var(--border);overflow:hidden;
+  }
+  .bar-visual-fill{height:100%;border-radius:100px;}
+
+  /* ── PAYSLIP LIST ── */
+  .payslip-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 22px;border-bottom:1px solid var(--border);
+    transition:background .12s;cursor:pointer;
+  }
+  .payslip-item:last-child{border-bottom:none;}
+  .payslip-item:hover{background:var(--blue-lighter);}
+  .ps-left{display:flex;align-items:center;gap:14px;}
+  .ps-icon{
+    width:44px;height:44px;border-radius:12px;
+    background:var(--blue-light);color:var(--blue);
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+  }
+  .ps-month{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;}
+  .ps-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .ps-right{display:flex;align-items:center;gap:14px;}
+  .ps-amount{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--blue);}
+  .ps-badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;}
+  .ps-badge.released{background:var(--green-light);color:var(--green);}
+  .ps-badge.pending{background:var(--amber-light);color:var(--amber);}
+  .dl-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);
+    background:#fff;cursor:pointer;font-size:12.5px;font-weight:600;
+    color:var(--text-muted);transition:all .15s;
+  }
+  .dl-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .dl-btn svg{width:14px;height:14px;}
+
+  /* ── PAYROLL HISTORY ── */
+  .history-table{width:100%;border-collapse:collapse;}
+  .history-table thead tr{border-bottom:1px solid var(--border);}
+  .history-table thead th{
+    padding:10px 22px;text-align:left;
+    font-size:11px;font-weight:600;color:var(--text-light);
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .history-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+  .history-table tbody tr:last-child{border-bottom:none;}
+  .history-table tbody tr:hover{background:var(--blue-lighter);}
+  .history-table tbody td{padding:12px 22px;font-size:13.5px;}
+  .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600;}
+  .badge.released{background:var(--green-light);color:var(--green);}
+  .badge.pending{background:var(--amber-light);color:var(--amber);}
+
+  /* ── NOTIFICATIONS ── */
+  .notif-item{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:16px 22px;border-bottom:1px solid var(--border);
+    transition:background .12s;
+  }
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item.unread{background:var(--blue-lighter);}
+  .notif-item:hover{background:var(--blue-lighter);}
+  .notif-icon{
+    width:40px;height:40px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;flex-shrink:0;
+  }
+  .notif-body{flex:1;}
+  .notif-body h4{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .notif-body p{font-size:13px;color:var(--text-muted);line-height:1.55;}
+  .notif-meta{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .notif-time{font-size:11.5px;color:var(--text-light);}
+  .unread-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;}
+  .notif-mark-btn{
+    padding:4px 10px;border-radius:6px;border:1.5px solid var(--border);
+    background:#fff;font-size:11.5px;cursor:pointer;color:var(--text-muted);
+    transition:all .15s;margin-left:auto;align-self:flex-start;
+  }
+  .notif-mark-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+  /* ── SETTINGS ── */
+  .settings-section{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+  .settings-section-label{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--text-light);padding:10px 22px 6px;
+  }
+  .settings-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 22px;border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .settings-row:last-child{border-bottom:none;}
+  .sr-left{display:flex;align-items:center;gap:12px;}
+  .sr-icon{
+    width:36px;height:36px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+  }
+  .sr-label{font-weight:600;}
+  .sr-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .toggle{
+    width:44px;height:24px;border-radius:100px;background:#e2e8f0;
+    position:relative;cursor:pointer;transition:background .2s;border:none;
+  }
+  .toggle.on{background:var(--blue);}
+  .toggle::after{
+    content:'';position:absolute;top:2px;left:2px;
+    width:20px;height:20px;border-radius:50%;background:#fff;
+    transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.15);
+  }
+  .toggle.on::after{transform:translateX(20px);}
+  .logout-section{padding:20px 22px;}
+  .logout-btn{
+    width:100%;padding:13px;border-radius:10px;
+    background:var(--red-light);color:var(--red);
+    border:1.5px solid #fecaca;font-family:'Sora',sans-serif;
+    font-size:14px;font-weight:700;cursor:pointer;
+    transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .logout-btn:hover{background:var(--red);color:#fff;}
+  .logout-btn svg{width:18px;height:18px;}
+
+  /* ── LOGOUT MODAL ── */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(15,23,42,.45);
+    backdrop-filter:blur(4px);z-index:100;
+    display:none;align-items:center;justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .confirm-modal{
+    background:#fff;border-radius:20px;width:380px;max-width:95vw;
+    box-shadow:0 24px 60px rgba(15,23,42,.2);
+    animation:modalIn .25s cubic-bezier(.34,1.56,.64,1) both;
+    padding:32px 28px;text-align:center;
+  }
+  @keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .confirm-icon{width:56px;height:56px;border-radius:50%;background:var(--red-light);color:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;}
+  .confirm-modal h3{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}
+  .confirm-modal p{font-size:13.5px;color:var(--text-muted);margin-bottom:24px;line-height:1.6;}
+  .confirm-btns{display:flex;gap:10px;justify-content:center;}
+  .btn{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;border:none;}
+  .btn-secondary{background:#f1f5f9;color:var(--text-muted);border:1.5px solid var(--border);}
+  .btn-secondary:hover{background:var(--border);}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#dc2626;}
+
+  /* ── TOAST ── */
+  .toast{
+    position:fixed;bottom:28px;right:28px;
+    background:var(--text);color:#fff;font-size:13.5px;font-weight:500;
+    padding:12px 20px;border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:200;
+    transform:translateY(80px);opacity:0;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);
+    display:flex;align-items:center;gap:8px;
+  }
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{background:var(--green);}
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  .view.active>*{animation:fadeUp .35s ease both;}
+  .view.active>*:nth-child(2){animation-delay:.07s;}
+  .view.active>*:nth-child(3){animation-delay:.12s;}
+  .view.active>*:nth-child(4){animation-delay:.17s;}
+
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+
+  <!-- Staff mini-profile -->
+  <div class="sidebar-profile">
+    <div class="sp-avatar">JD</div>
+    <div>
+      <div class="sp-name">John Doe</div>
+      <div class="sp-role">Product Designer · IT</div>
+      <span class="sp-badge">● Active</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-item active" onclick="showView('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      My Dashboard
+    </button>
+    <button class="nav-item" onclick="showView('profile')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      My Profile
+    </button>
+    <button class="nav-item" onclick="showView('salary')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Salary Breakdown
+    </button>
+    <button class="nav-item" onclick="showView('payslips')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      My Payslips
+    </button>
+    <button class="nav-item" onclick="showView('history')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Payroll History
+    </button>
+    <button class="nav-item" onclick="showView('notifications')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      Notifications
+      <span class="notif-badge" id="navNotifBadge">3</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <button class="nav-item" onclick="showView('settings')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Settings
+    </button>
+    <button class="danger-item" onclick="openLogout()">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Log Out
+    </button>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-sub" id="topbarSub">Staff Portal</div>
+      <div class="topbar-title" id="topbarTitle">My Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <button class="notif-btn" onclick="showView('notifications')">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="notif-dot" id="topNotifDot"></span>
+      </button>
+      <div class="staff-avatar">JD</div>
+    </div>
+  </header>
+
+  <!-- ════════ VIEW: DASHBOARD ════════ -->
+  <div class="view active" id="view-dashboard">
+
+    <!-- Welcome Banner -->
+    <div style="background:linear-gradient(120deg,#1e3a8a 0%,#1d4ed8 50%,#3b82f6 100%);border-radius:var(--radius);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 28px rgba(29,78,216,.25);position:relative;overflow:hidden;">
+      <div style="position:absolute;right:-50px;top:-50px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%;"></div>
+      <div>
+        <p style="color:rgba(255,255,255,.75);font-size:13px;margin-bottom:4px;">Good morning 👋</p>
+        <h2 style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Welcome back, John Doe</h2>
+        <p style="font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6;">Your April 2025 payslip is ready. Next salary release: <strong style="color:#fff;">April 30, 2025</strong>.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;">
+        <div style="background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:14px 22px;text-align:center;">
+          <div style="font-family:'Sora',sans-serif;font-size:26px;font-weight:800;color:#fff;">₱101,800</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);">Net Pay — April</div>
+        </div>
+        <button onclick="showView('payslips')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">📄 Download Payslip</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;">💰</div>
+        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">₱101,800</div>
+        <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Net Pay (April)</div>
+      </div>
+      <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--green-light);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;">📅</div>
+        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">22</div>
+        <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Days Present</div>
+      </div>
+      <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--amber-light);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
+        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">12</div>
+        <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Payslips Available</div>
+      </div>
+      <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--violet-light);color:var(--violet);display:flex;align-items:center;justify-content:center;font-size:18px;">🔔</div>
+        <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;">3</div>
+        <div style="font-size:12px;color:var(--text-muted);font-weight:500;">New Notifications</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="card">
+      <div class="card-header"><div><h3>Quick Access</h3><p>Jump to what you need</p></div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:6px 22px 22px;">
+        <button onclick="showView('profile')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-lighter)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='#fff'">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
+          <span style="font-size:12px;font-weight:600;color:var(--text-muted);">My Profile</span>
+        </button>
+        <button onclick="showView('salary')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-lighter)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='#fff'">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:18px;">💸</div>
+          <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Salary Breakdown</span>
+        </button>
+        <button onclick="showView('payslips')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-lighter)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='#fff'">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>
+          <span style="font-size:12px;font-weight:600;color:var(--text-muted);">My Payslips</span>
+        </button>
+        <button onclick="showView('history')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-lighter)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='#fff'">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--violet-light);display:flex;align-items:center;justify-content:center;font-size:18px;">🗂️</div>
+          <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Payroll History</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Notifications preview -->
+    <div class="card">
+      <div class="card-header">
+        <div><h3>Recent Notifications</h3><p>Latest updates for you</p></div>
+        <button onclick="showView('notifications')" style="font-size:12px;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--blue-light)'" onmouseout="this.style.background='none'">View all →</button>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-icon" style="background:var(--green-light);">💰</div>
+        <div class="notif-body"><h4>Salary Released — April 2025</h4><p>Your net pay of ₱101,800 has been credited to your account.</p><div class="notif-meta"><span class="notif-time">Today, 9:00 AM</span><span class="unread-dot"></span></div></div>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-icon" style="background:var(--blue-light);">📄</div>
+        <div class="notif-body"><h4>April Payslip Available</h4><p>Your payslip for April 2025 is ready to view and download.</p><div class="notif-meta"><span class="notif-time">Today, 9:05 AM</span><span class="unread-dot"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: PROFILE ════════ -->
+  <div class="view" id="view-profile">
+    <div class="profile-hero">
+      <div class="ph-avatar">JD</div>
+      <div class="ph-info">
+        <h2>John Doe</h2>
+        <p class="ph-pos">Product Designer · IT Department</p>
+        <div class="ph-pills">
+          <span class="ph-pill">🟢 Active</span>
+          <span class="ph-pill">Employee ID: BFAR-2023-047</span>
+          <span class="ph-pill">Since Jan 10, 2023</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div><h3>Personal Information</h3><p>Your personal and contact details</p></div></div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="di-label">Full Name</div><div class="di-val">John Michael Doe</div></div>
+          <div class="detail-item"><div class="di-label">Date of Birth</div><div class="di-val">March 15, 1992</div></div>
+          <div class="detail-item"><div class="di-label">Gender</div><div class="di-val">Male</div></div>
+          <div class="detail-item"><div class="di-label">Civil Status</div><div class="di-val">Single</div></div>
+          <div class="detail-item"><div class="di-label">Contact Number</div><div class="di-val">+63 912 345 6789</div></div>
+          <div class="detail-item"><div class="di-label">Email Address</div><div class="di-val">john.doe@bfar.gov.ph</div></div>
+          <div class="detail-item" style="grid-column:1/-1"><div class="di-label">Home Address</div><div class="di-val">123 Quezon Avenue, Quezon City, Metro Manila 1100</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div><h3>Employment Details</h3><p>Your current role and employment status</p></div></div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="di-label">Employee ID</div><div class="di-val">BFAR-2023-047</div></div>
+          <div class="detail-item"><div class="di-label">Position</div><div class="di-val">Product Designer</div></div>
+          <div class="detail-item"><div class="di-label">Department</div><div class="di-val">Information Technology</div></div>
+          <div class="detail-item"><div class="di-label">Employment Type</div><div class="di-val">Permanent</div></div>
+          <div class="detail-item"><div class="di-label">Date Hired</div><div class="di-val">January 10, 2023</div></div>
+          <div class="detail-item"><div class="di-label">Years of Service</div><div class="di-val">2 years, 3 months</div></div>
+          <div class="detail-item"><div class="di-label">Salary Grade</div><div class="di-val">SG-18</div></div>
+          <div class="detail-item"><div class="di-label">Status</div><div class="di-val" style="color:var(--green);font-weight:700;">● Active</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div><h3>Government IDs & Contributions</h3><p>Mandatory government records</p></div></div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="di-label">TIN</div><div class="di-val">123-456-789-000</div></div>
+          <div class="detail-item"><div class="di-label">SSS Number</div><div class="di-val">34-5678901-2</div></div>
+          <div class="detail-item"><div class="di-label">PhilHealth</div><div class="di-val">12-345678901-2</div></div>
+          <div class="detail-item"><div class="di-label">Pag-IBIG</div><div class="di-val">1234-5678-9012</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: SALARY BREAKDOWN ════════ -->
+  <div class="view" id="view-salary">
+    <div class="salary-hero">
+      <div>
+        <div class="sh-label">April 2025 — Net Pay</div>
+        <div class="sh-val">₱101,800.00</div>
+        <div class="sh-period">Pay period: April 1–30, 2025 · Released April 30, 2025</div>
+      </div>
+      <div class="sh-status">✅ Released</div>
+    </div>
+
+    <div class="breakdown-grid">
+      <!-- Earnings -->
+      <div class="breakdown-section">
+        <div class="bs-header" style="background:var(--green-light);">
+          <span class="bs-dot" style="background:var(--green);"></span>Earnings
+        </div>
+        <div class="bs-row"><span class="bsr-label">Basic Pay</span><span class="bsr-val">₱85,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Rice Subsidy</span><span class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Transportation</span><span class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">PERA Allowance</span><span class="bsr-val">₱2,000</span></div>
+        <div class="bs-row"><span class="bsr-label">Clothing Allowance</span><span class="bsr-val">₱6,000</span></div>
+        <div class="bs-total"><span>Total Earnings</span><span style="color:var(--green);">₱97,000</span></div>
+        <div class="bar-visual"><div class="bar-visual-fill" style="width:88%;background:var(--green);"></div></div>
+      </div>
+
+      <!-- Deductions -->
+      <div class="breakdown-section">
+        <div class="bs-header" style="background:var(--red-light);">
+          <span class="bs-dot" style="background:var(--red);"></span>Deductions
+        </div>
+        <div class="bs-row"><span class="bsr-label">Withholding Tax</span><span class="bsr-val" style="color:var(--red);">- ₱8,500</span></div>
+        <div class="bs-row"><span class="bsr-label">SSS Contribution</span><span class="bsr-val" style="color:var(--red);">- ₱1,350</span></div>
+        <div class="bs-row"><span class="bsr-label">PhilHealth</span><span class="bsr-val" style="color:var(--red);">- ₱1,125</span></div>
+        <div class="bs-row"><span class="bsr-label">Pag-IBIG</span><span class="bsr-val" style="color:var(--red);">- ₱200</span></div>
+        <div class="bs-row"><span class="bsr-label">Salary Loan</span><span class="bsr-val" style="color:var(--red);">- ₱4,025</span></div>
+        <div class="bs-total"><span>Total Deductions</span><span style="color:var(--red);">- ₱15,200</span></div>
+        <div class="bar-visual"><div class="bar-visual-fill" style="width:16%;background:var(--red);"></div></div>
+      </div>
+    </div>
+
+    <!-- Net Summary Card -->
+    <div class="card">
+      <div class="card-header"><div><h3>Pay Summary</h3><p>Gross vs. Net breakdown</p></div></div>
+      <div style="padding:8px 22px 22px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius-sm);background:var(--green-light);border:1px solid #a7f3d0;">
+          <span style="font-size:14px;font-weight:600;">Gross Pay</span>
+          <span style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--green);">₱97,000.00</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:var(--radius-sm);background:var(--red-light);border:1px solid #fecaca;">
+          <span style="font-size:14px;font-weight:600;">Total Deductions</span>
+          <span style="font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--red);">- ₱15,200.00</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#1d4ed8,#3b82f6);">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#fff;">Net Pay</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.7);">Take-home for April 2025</div>
+          </div>
+          <span style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;">₱101,800.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: PAYSLIPS ════════ -->
+  <div class="view" id="view-payslips">
+    <div class="card">
+      <div class="card-header"><div><h3>My Payslips</h3><p>Download your monthly payslips</p></div></div>
+      <div class="payslip-item">
+        <div class="ps-left">
+          <div class="ps-icon">📄</div>
+          <div><div class="ps-month">April 2025</div><div class="ps-sub">Pay period: Apr 1–30 · Released Apr 30</div></div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-amount">₱101,800</span>
+          <span class="ps-badge released">Released</span>
+          <button class="dl-btn" onclick="fakeDownload('April-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+        </div>
+      </div>
+      <div class="payslip-item">
+        <div class="ps-left">
+          <div class="ps-icon">📄</div>
+          <div><div class="ps-month">March 2025</div><div class="ps-sub">Pay period: Mar 1–31 · Released Mar 31</div></div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-amount">₱101,800</span>
+          <span class="ps-badge released">Released</span>
+          <button class="dl-btn" onclick="fakeDownload('March-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+        </div>
+      </div>
+      <div class="payslip-item">
+        <div class="ps-left">
+          <div class="ps-icon">📄</div>
+          <div><div class="ps-month">February 2025</div><div class="ps-sub">Pay period: Feb 1–28 · Released Feb 28</div></div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-amount">₱99,200</span>
+          <span class="ps-badge released">Released</span>
+          <button class="dl-btn" onclick="fakeDownload('February-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+        </div>
+      </div>
+      <div class="payslip-item">
+        <div class="ps-left">
+          <div class="ps-icon">📄</div>
+          <div><div class="ps-month">January 2025</div><div class="ps-sub">Pay period: Jan 1–31 · Released Jan 31</div></div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-amount">₱99,200</span>
+          <span class="ps-badge released">Released</span>
+          <button class="dl-btn" onclick="fakeDownload('January-2025-Payslip')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+        </div>
+      </div>
+      <div class="payslip-item">
+        <div class="ps-left">
+          <div class="ps-icon" style="background:var(--amber-light);color:var(--amber);">⏳</div>
+          <div><div class="ps-month">May 2025</div><div class="ps-sub">Pay period: May 1–31 · Due May 31</div></div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-amount" style="color:var(--text-muted);">Pending</span>
+          <span class="ps-badge pending">Pending</span>
+          <button class="dl-btn" style="opacity:.4;cursor:not-allowed;" disabled><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: PAYROLL HISTORY ════════ -->
+  <div class="view" id="view-history">
+    <div class="card">
+      <div class="card-header"><div><h3>Payroll History</h3><p>Complete record of your past payroll</p></div></div>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Basic Pay</th>
+            <th>Allowances</th>
+            <th>Deductions</th>
+            <th>Net Pay</th>
+            <th>Status</th>
+            <th>Release Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>April 2025</strong></td><td>₱85,000</td><td>₱16,000</td><td>₱15,200</td><td style="font-weight:700;color:var(--blue);">₱101,800</td><td><span class="badge released">Released</span></td><td>Apr 30, 2025</td></tr>
+          <tr><td><strong>March 2025</strong></td><td>₱85,000</td><td>₱16,000</td><td>₱15,200</td><td style="font-weight:700;color:var(--blue);">₱101,800</td><td><span class="badge released">Released</span></td><td>Mar 31, 2025</td></tr>
+          <tr><td><strong>February 2025</strong></td><td>₱83,000</td><td>₱16,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱99,200</td><td><span class="badge released">Released</span></td><td>Feb 28, 2025</td></tr>
+          <tr><td><strong>January 2025</strong></td><td>₱83,000</td><td>₱16,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱99,200</td><td><span class="badge released">Released</span></td><td>Jan 31, 2025</td></tr>
+          <tr><td><strong>December 2024</strong></td><td>₱83,000</td><td>₱28,000</td><td>₱14,800</td><td style="font-weight:700;color:var(--blue);">₱121,200</td><td><span class="badge released">Released</span></td><td>Dec 20, 2024</td></tr>
+          <tr><td><strong>November 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Nov 30, 2024</td></tr>
+          <tr><td><strong>October 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Oct 31, 2024</td></tr>
+          <tr><td><strong>September 2024</strong></td><td>₱80,000</td><td>₱16,000</td><td>₱14,200</td><td style="font-weight:700;color:var(--blue);">₱96,800</td><td><span class="badge released">Released</span></td><td>Sep 30, 2024</td></tr>
+          <tr><td><strong>May 2025</strong></td><td>—</td><td>—</td><td>—</td><td style="color:var(--text-muted);">Pending</td><td><span class="badge pending">Pending</span></td><td>May 31, 2025</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: NOTIFICATIONS ════════ -->
+  <div class="view" id="view-notifications">
+    <div class="card">
+      <div class="card-header">
+        <div><h3>Notifications</h3><p>Salary updates and system alerts</p></div>
+        <button onclick="markAllRead()" style="font-size:12px;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--blue-light)'" onmouseout="this.style.background='none'">Mark all read</button>
+      </div>
+      <div id="notifList">
+        <div class="notif-item unread" data-id="1">
+          <div class="notif-icon" style="background:var(--green-light);">💰</div>
+          <div class="notif-body">
+            <h4>Salary Released — April 2025</h4>
+            <p>Your net pay of ₱101,800 has been successfully credited to your account ending in ****4521.</p>
+            <div class="notif-meta"><span class="notif-time">Today, 9:00 AM</span><span class="unread-dot"></span></div>
+          </div>
+          <button class="notif-mark-btn" onclick="markRead(1)">Mark read</button>
+        </div>
+        <div class="notif-item unread" data-id="2">
+          <div class="notif-icon" style="background:var(--blue-light);">📄</div>
+          <div class="notif-body">
+            <h4>April Payslip Now Available</h4>
+            <p>Your payslip for April 2025 is ready. You can view and download it from the My Payslips section.</p>
+            <div class="notif-meta"><span class="notif-time">Today, 9:05 AM</span><span class="unread-dot"></span></div>
+          </div>
+          <button class="notif-mark-btn" onclick="markRead(2)">Mark read</button>
+        </div>
+        <div class="notif-item unread" data-id="3">
+          <div class="notif-icon" style="background:var(--amber-light);">📅</div>
+          <div class="notif-body">
+            <h4>Next Payroll: May 31, 2025</h4>
+            <p>Reminder: The next salary release is scheduled for May 31, 2025. Please ensure your attendance records are up to date.</p>
+            <div class="notif-meta"><span class="notif-time">Today, 8:00 AM</span><span class="unread-dot"></span></div>
+          </div>
+          <button class="notif-mark-btn" onclick="markRead(3)">Mark read</button>
+        </div>
+        <div class="notif-item" data-id="4">
+          <div class="notif-icon" style="background:var(--green-light);">💰</div>
+          <div class="notif-body">
+            <h4>Salary Released — March 2025</h4>
+            <p>Your net pay of ₱101,800 has been credited to your account.</p>
+            <div class="notif-meta"><span class="notif-time">Mar 31, 2025</span></div>
+          </div>
+        </div>
+        <div class="notif-item" data-id="5">
+          <div class="notif-icon" style="background:var(--violet-light);">⚙️</div>
+          <div class="notif-body">
+            <h4>System Maintenance — March 15</h4>
+            <p>The payroll system was briefly offline for maintenance. All data has been fully restored.</p>
+            <div class="notif-meta"><span class="notif-time">Mar 15, 2025</span></div>
+          </div>
+        </div>
+        <div class="notif-item" data-id="6">
+          <div class="notif-icon" style="background:var(--blue-light);">📢</div>
+          <div class="notif-body">
+            <h4>Policy Update: BIR Filing Reminder</h4>
+            <p>Please submit your ITR for 2024 before April 15, 2025. Contact HR for assistance.</p>
+            <div class="notif-meta"><span class="notif-time">Mar 1, 2025</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: SETTINGS ════════ -->
+  <div class="view" id="view-settings">
+    <div class="card">
+      <div class="settings-section-label" style="padding:18px 22px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);">Account</div>
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--blue-light);">👤</div>
+          <div><div class="sr-label">Profile Information</div><div class="sr-sub">John Doe · john.doe@bfar.gov.ph</div></div>
+        </div>
+        <button onclick="showView('profile')" style="font-size:12.5px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;">Edit →</button>
+      </div>
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--amber-light);">🔑</div>
+          <div><div class="sr-label">Change Password</div><div class="sr-sub">Last changed 3 months ago</div></div>
+        </div>
+        <button onclick="showToast('Password change sent to your email.','success')" style="font-size:12.5px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;">Change →</button>
+      </div>
+
+      <div style="padding:10px 22px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);">Notifications</div>
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--green-light);">💰</div>
+          <div><div class="sr-label">Salary Release Alerts</div><div class="sr-sub">Notify when salary is credited</div></div>
+        </div>
+        <button class="toggle on" onclick="toggleSetting(this)" id="t1"></button>
+      </div>
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--blue-light);">📄</div>
+          <div><div class="sr-label">Payslip Availability</div><div class="sr-sub">Notify when payslip is ready</div></div>
+        </div>
+        <button class="toggle on" onclick="toggleSetting(this)" id="t2"></button>
+      </div>
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--violet-light);">📢</div>
+          <div><div class="sr-label">System Announcements</div><div class="sr-sub">HR updates and reminders</div></div>
+        </div>
+        <button class="toggle on" onclick="toggleSetting(this)" id="t3"></button>
+      </div>
+      <div class="settings-row" style="border-bottom:none;">
+        <div class="sr-left">
+          <div class="sr-icon" style="background:var(--amber-light);">📧</div>
+          <div><div class="sr-label">Email Notifications</div><div class="sr-sub">Also send to john.doe@bfar.gov.ph</div></div>
+        </div>
+        <button class="toggle" onclick="toggleSetting(this)" id="t4"></button>
+      </div>
+
+      <div style="padding:10px 22px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);">Danger Zone</div>
+      <div class="logout-section">
+        <button class="logout-btn" onclick="openLogout()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Log Out of BFAR Payroll System
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- LOGOUT MODAL -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🚪</div>
+    <h3>Log Out?</h3>
+    <p>You are about to log out of the BFAR Payroll System. You will need to sign in again to access your account.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" onclick="closeLogout()">Cancel</button>
+      <button class="btn btn-danger" onclick="doLogout()">Yes, Log Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const viewTitles = {
+    dashboard: ['Staff Portal', 'My Dashboard'],
+    profile:   ['Account', 'My Profile'],
+    salary:    ['Compensation', 'Salary Breakdown'],
+    payslips:  ['Documents', 'My Payslips'],
+    history:   ['Records', 'Payroll History'],
+    notifications: ['Inbox', 'Notifications'],
+    settings:  ['Account', 'Settings'],
+  };
+
+  let unreadCount = 3;
+
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    const navBtns = document.querySelectorAll('.nav-item');
+    navBtns.forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'")) b.classList.add('active');
+    });
+    const [sub, title] = viewTitles[id] || ['', id];
+    document.getElementById('topbarSub').textContent = sub;
+    document.getElementById('topbarTitle').textContent = title;
+    window.scrollTo(0, 0);
+  }
+
+  function markRead(id) {
+    const item = document.querySelector(`[data-id="${id}"]`);
+    if (!item || !item.classList.contains('unread')) return;
+    item.classList.remove('unread');
+    const dot = item.querySelector('.unread-dot');
+    if (dot) dot.remove();
+    const btn = item.querySelector('.notif-mark-btn');
+    if (btn) btn.remove();
+    unreadCount = Math.max(0, unreadCount - 1);
+    updateNotifBadge();
+  }
+
+  function markAllRead() {
+    document.querySelectorAll('.notif-item.unread').forEach(item => {
+      item.classList.remove('unread');
+      const dot = item.querySelector('.unread-dot');
+      if (dot) dot.remove();
+      const btn = item.querySelector('.notif-mark-btn');
+      if (btn) btn.remove();
+    });
+    unreadCount = 0;
+    updateNotifBadge();
+    showToast('All notifications marked as read.', 'success');
+  }
+
+  function updateNotifBadge() {
+    const badge = document.getElementById('navNotifBadge');
+    const dot = document.getElementById('topNotifDot');
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount;
+      badge.style.display = '';
+      dot.style.display = '';
+    } else {
+      badge.style.display = 'none';
+      dot.style.display = 'none';
+    }
+  }
+
+  function toggleSetting(btn) {
+    btn.classList.toggle('on');
+    showToast(btn.classList.contains('on') ? 'Setting enabled.' : 'Setting disabled.', 'success');
+  }
+
+  function fakeDownload(name) {
+    showToast(`Downloading ${name}.pdf...`, 'success');
+  }
+
+  function openLogout() {
+    document.getElementById('logoutModal').classList.add('open');
+  }
+  function closeLogout() {
+    document.getElementById('logoutModal').classList.remove('open');
+  }
+  function doLogout() {
+    window.location.href = 'login.html';
+  }
+  document.getElementById('logoutModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeLogout();
+  });
+
+  let toastTimer;
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  updateNotifBadge();
+</script>
+</body>
+</html>

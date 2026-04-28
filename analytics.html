@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll System - Reports & Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1d4ed8; --blue-mid: #3b82f6; --blue-light: #dbeafe; --blue-lighter: #eff6ff;
+    --green: #10b981; --green-light: #d1fae5; --amber: #f59e0b; --amber-light: #fef3c7;
+    --red: #ef4444; --red-light: #fee2e2; --bg: #f0f4fb; --sidebar-bg: #ffffff;
+    --card-bg: #ffffff; --text: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+    --shadow: 0 2px 16px rgba(29,78,216,0.07); --radius: 16px; --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+  .sidebar{
+    width:224px; min-height:100vh;
+    background:var(--card);
+    display:flex; flex-direction:column;
+    padding:28px 16px 24px;
+    position:fixed; left:0; top:0; bottom:0;
+    border-right:1px solid var(--border);
+    z-index:10;
+  }
+  .logo{
+    font-family:'Sora',sans-serif;
+    font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:36px; padding:0 8px; line-height:1.3;
+  }
+  .logo-icon{
+    width:36px; height:36px; flex-shrink:0;
+    background:var(--blue); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:17px; font-weight:800;
+  }
+  .nav{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:var(--radius-sm);
+    font-size:13.5px; font-weight:500; color:var(--text-muted);
+    cursor:pointer; transition:all .18s; text-decoration:none;
+  }
+  .nav-item:hover{background:var(--blue-light);color:var(--blue);}
+  .nav-item.active{background:var(--blue);color:#fff;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .settings-item{
+    margin-top:16px; display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--text-muted);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+  }
+  .settings-item:hover{background:var(--blue-light);color:var(--blue);}
+  .settings-item svg{width:18px;height:18px;}
+
+  .logout-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--red);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+    text-decoration:none; font-weight:600;
+  }
+  .logout-item:hover { background:var(--red-light); color:var(--red); }
+  .logout-item svg { width:18px; height:18px; }
+
+
+  /* Dropdown Styles */
+  .nav-group { display: flex; flex-direction: column; }
+  .nav-item-parent { justify-content: space-between; padding-right: 10px; }
+  .chevron { width: 16px !important; height: 16px !important; transition: transform 0.2s; }
+  .nav-item-parent.open .chevron { transform: rotate(180deg); }
+  .nav-dropdown { display: none; flex-direction: column; gap: 2px; margin: 2px 0 6px 36px; }
+  .nav-dropdown.open { display: flex; }
+  .dropdown-item { display: block; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-muted); text-decoration: none; }
+  .dropdown-item:hover { color: var(--blue); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 224px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  .topbar h2 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; }
+
+  /* ── PAGE CONTENT ── */
+  .page { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; }
+  .view-section { display: none; flex-direction: column; gap: 24px; }
+  .view-section.active { display: flex; }
+
+  /* ── ANALYTICS CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid transparent; }
+  .stat-card:hover { border-color: var(--blue-mid); }
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; }
+
+  /* ── CHART BOX ── */
+  .analytics-main { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+  .chart-card { background: #fff; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  
+  /* CSS Bar Chart */
+  .bar-container { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; padding-top: 20px; gap: 10px; }
+  .bar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bar { width: 100%; background: var(--blue-light); border-radius: 6px 6px 2px 2px; position: relative; transition: 0.3s; cursor: pointer; }
+  .bar:hover { background: var(--blue-mid); }
+  .bar.highlight { background: var(--blue); }
+  .bar-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+  /* ── SUMMARY LIST ── */
+  .summary-table { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 14px 24px; font-size: 12px; color: var(--text-muted); background: #f8fafc; }
+  td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid var(--border); }
+
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text); }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+  .badge-blue { background: var(--blue-lighter); color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+  <nav class="nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="employee.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Employee
+    </a>
+    <a class="nav-item" href="payroll.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Payroll
+    </a>
+    <a class="nav-item" href="attendance.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item active" href="analytics.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Reports and Analytics
+    </a>
+    <a class="nav-item" href="tax.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Tax and Compliance
+    </a>
+  </nav>
+  
+  <div style="flex: 1;"></div>
+  
+  <div style="margin-top: 16px;">
+    <a href="login.html" class="logout-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </div>
+</aside>
+
+  </nav>
+
+<div class="main">
+  <header class="topbar">
+    <h2 id="pageTitle">Reports & Analytics</h2>
+    <div id="topActions">
+        <button class="btn btn-outline" onclick="alert('Exporting Report...')">Export Data</button>
+        <button class="btn btn-primary" onclick="switchView('summary')">Generate Monthly Summary</button>
+    </div>
+    <button class="btn btn-outline" id="backBtn" style="display:none;" onclick="switchView('main')">← Back to Analytics</button>
+  </header>
+
+  <div class="page">
+    
+    <section id="mainAnalytics" class="view-section active">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Annual Gross</div><div class="stat-value">₱2.4M</div></div>
+            <div class="stat-card"><div class="stat-label">Avg. Monthly Tax</div><div class="stat-value" style="color:var(--red)">₱142K</div></div>
+            <div class="stat-card"><div class="stat-label">Net Growth</div><div class="stat-value" style="color:var(--green)">+12.4%</div></div>
+            <div class="stat-card"><div class="stat-label">Active Employees</div><div class="stat-value">156</div></div>
+        </div>
+
+        <div class="analytics-main">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4 style="font-family:'Sora'">Payroll Expense Trend (6 Months)</h4>
+                </div>
+                <div class="bar-container" id="trendChart">
+                    </div>
+            </div>
+            <div class="chart-card">
+                <h4 style="font-family:'Sora'; margin-bottom:20px;">Top Departments</h4>
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Operations</span><span>45%</span></div>
+                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:45%; height:100%; background:var(--blue); border-radius:4px;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Research</span><span>30%</span></div>
+                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:30%; height:100%; background:var(--blue-mid); border-radius:4px;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>Admin</span><span>25%</span></div>
+                        <div style="height:8px; background:var(--bg); border-radius:4px;"><div style="width:25%; height:100%; background:var(--green); border-radius:4px;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="monthlySummary" class="view-section">
+        <div class="summary-table">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-family:'Sora'; font-size:16px;">Detailed Monthly Breakdown (2026)</h3>
+                <span class="badge badge-blue">Updated 2 mins ago</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Gross Amount</th>
+                        <th>Deductions</th>
+                        <th>Net Payout</th>
+                        <th>Employees Paid</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>March 2026</strong></td><td>₱412,000.00</td><td>₱52,000.00</td><td>₱360,000.00</td><td>152</td><td><span class="badge badge-blue">Released</span></td></tr>
+                    <tr><td><strong>February 2026</strong></td><td>₱405,500.00</td><td>₱51,200.00</td><td>₱354,300.00</td><td>150</td><td><span class="badge badge-blue">Released</span></td></tr>
+                    <tr><td><strong>January 2026</strong></td><td>₱398,000.00</td><td>₱50,000.00</td><td>₱348,000.00</td><td>148</td><td><span class="badge badge-blue">Released</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  // Trend Chart Data
+  const trendData = [
+    { m: 'Nov', v: 60 }, { m: 'Dec', v: 75 }, { m: 'Jan', v: 70 }, 
+    { m: 'Feb', v: 85 }, { m: 'Mar', v: 92 }, { m: 'Apr', v: 100 }
+  ];
+
+  function renderChart() {
+    const container = document.getElementById('trendChart');
+    container.innerHTML = '';
+    trendData.forEach((d, i) => {
+      const isLast = i === trendData.length - 1;
+      container.innerHTML += `
+        <div class="bar-wrapper">
+          <div class="bar ${isLast ? 'highlight' : ''}" style="height:${d.v}%" title="₱${d.v * 4}k"></div>
+          <span class="bar-label">${d.m}</span>
+        </div>
+      `;
+    });
+  }
+
+  // View Switcher Logic
+  function switchView(view) {
+    const main = document.getElementById('mainAnalytics');
+    const summary = document.getElementById('monthlySummary');
+    const backBtn = document.getElementById('backBtn');
+    const topActions = document.getElementById('topActions');
+    const title = document.getElementById('pageTitle');
+
+    if (view === 'summary') {
+        main.classList.remove('active');
+        summary.classList.add('active');
+        backBtn.style.display = 'inline-flex';
+        topActions.style.display = 'none';
+        title.textContent = "Monthly Summary Report";
+    } else {
+        summary.classList.remove('active');
+        main.classList.add('active');
+        backBtn.style.display = 'none';
+        topActions.style.display = 'flex';
+        title.textContent = "Reports & Analytics";
+    }
+  }
+
+  function toggleNavDropdown(el) {
+    el.classList.toggle('open');
+    el.nextElementSibling.classList.toggle('open');
+  }
+
+  // Init
+  renderChart();
+</script>
+</body>
+</html>

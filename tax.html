@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll System - Tax & Compliance</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1d4ed8; --blue-mid: #3b82f6; --blue-light: #dbeafe; --blue-lighter: #eff6ff;
+    --green: #10b981; --green-light: #d1fae5; --amber: #f59e0b; --amber-light: #fef3c7;
+    --red: #ef4444; --red-light: #fee2e2; --bg: #f0f4fb; --sidebar-bg: #ffffff;
+    --card-bg: #ffffff; --text: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+    --shadow: 0 2px 16px rgba(29,78,216,0.07); --radius: 16px; --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+  .sidebar{
+    width:224px; min-height:100vh;
+    background:var(--card);
+    display:flex; flex-direction:column;
+    padding:28px 16px 24px;
+    position:fixed; left:0; top:0; bottom:0;
+    border-right:1px solid var(--border);
+    z-index:10;
+  }
+  .logo{
+    font-family:'Sora',sans-serif;
+    font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:36px; padding:0 8px; line-height:1.3;
+  }
+  .logo-icon{
+    width:36px; height:36px; flex-shrink:0;
+    background:var(--blue); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:17px; font-weight:800;
+  }
+  .nav{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:var(--radius-sm);
+    font-size:13.5px; font-weight:500; color:var(--text-muted);
+    cursor:pointer; transition:all .18s; text-decoration:none;
+  }
+  .nav-item:hover{background:var(--blue-light);color:var(--blue);}
+  .nav-item.active{background:var(--blue);color:#fff;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .settings-item{
+    margin-top:16px; display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--text-muted);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+  }
+  .settings-item:hover{background:var(--blue-light);color:var(--blue);}
+  .settings-item svg{width:18px;height:18px;}
+
+  .logout-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--red);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+    text-decoration:none; font-weight:600;
+  }
+  .logout-item:hover { background:var(--red-light); color:var(--red); }
+  .logout-item svg { width:18px; height:18px; }
+
+
+  /* ── MAIN ── */
+  .main { margin-left: 224px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  .topbar h2 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; }
+
+  /* ── PAGE CONTENT ── */
+  .page { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; }
+  .view-container { display: none; flex-direction: column; gap: 24px; }
+  .view-container.active { display: flex; }
+
+  /* ── ACTION CARDS ── */
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .action-card { background: #fff; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); border: 1px solid transparent; transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; gap: 12px; }
+  .action-card:hover { border-color: var(--blue); transform: translateY(-4px); }
+  .action-card h3 { font-family: 'Sora', sans-serif; color: var(--blue); }
+  .action-card p { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat-card { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+  .stat-value { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; margin-top: 4px; }
+
+  /* ── TABLES ── */
+  .table-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 14px 24px; font-size: 12px; color: var(--text-muted); background: #f8fafc; }
+  td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid var(--border); }
+
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--blue-lighter); }
+
+  .badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+  <nav class="nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="employee.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Employee
+    </a>
+    <a class="nav-item" href="payroll.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Payroll
+    </a>
+    <a class="nav-item" href="attendance.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item" href="analytics.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Reports and Analytics
+    </a>
+    <a class="nav-item active" href="tax.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Tax and Compliance
+    </a>
+  </nav>
+  
+  <div style="flex: 1;"></div>
+  
+  <div style="margin-top: 16px;">
+    <a href="login.html" class="logout-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <h2 id="pageTitle">Tax & Compliance</h2>
+    <button class="btn btn-outline" id="backBtn" style="display:none;" onclick="showView('main')">← Back to Hub</button>
+  </header>
+
+  <div class="page">
+    
+    <section id="mainView" class="view-container active">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Tax Status</div><div class="stat-value"><span class="badge">Compliant</span></div></div>
+            <div class="stat-card"><div class="stat-label">Next Filing Date</div><div class="stat-value">May 15, 2026</div></div>
+            <div class="stat-card"><div class="stat-label">Total Tax Liability</div><div class="stat-value" style="color:var(--red)">₱184,200.00</div></div>
+        </div>
+
+        <div class="action-grid">
+            <div class="action-card" onclick="showView('expenses')">
+                <h3>Total Payroll Expenses</h3>
+                <p>Calculate and review the overall cost to the company, including gross salaries, employer contributions, and overhead.</p>
+                <span style="color:var(--blue); font-weight:600; font-size:13px;">Calculate Now →</span>
+            </div>
+            <div class="action-card" onclick="showView('taxBreakdown')">
+                <h3>Employee Tax Breakdown</h3>
+                <p>Detailed view of withholding taxes, SSS, and PhilHealth contributions calculated per individual employee.</p>
+                <span style="color:var(--blue); font-weight:600; font-size:13px;">View Per Employee →</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="expensesView" class="view-container">
+        <div class="table-card">
+            <div style="padding:24px; border-bottom:1px solid var(--border);">
+                <h4 style="font-family:'Sora'">Expense Confirmation (Current Period)</h4>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Amount</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Gross Salaries</td><td>₱1,250,000.00</td><td>82%</td></tr>
+                    <tr><td>Employer SSS/PhilHealth</td><td>₱125,000.00</td><td>8%</td></tr>
+                    <tr><td>Withholding Taxes</td><td>₱150,000.00</td><td>10%</td></tr>
+                    <tr style="background:#f8fafc; font-weight:700;">
+                        <td>Total Payroll Expense</td>
+                        <td style="color:var(--blue)">₱1,525,000.00</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="taxView" class="view-container">
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Gross Pay</th>
+                        <th>Withholding Tax</th>
+                        <th>SSS Contrib.</th>
+                        <th>PhilHealth</th>
+                        <th>Total Tax</th>
+                    </tr>
+                </thead>
+                <tbody id="taxBody">
+                    </tbody>
+            </table>
+        </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const employees = [
+    { name: "Guy Hawkins", gross: 45000, tax: 4500, sss: 1200, ph: 900 },
+    { name: "Floyd Miles", gross: 38000, tax: 3200, sss: 1200, ph: 760 },
+    { name: "Jane Cooper", gross: 55000, tax: 6800, sss: 1200, ph: 1100 },
+    { name: "Arlene McCoy", gross: 42000, tax: 4100, sss: 1200, ph: 840 }
+  ];
+
+  function showView(view) {
+    // Reset all
+    document.getElementById('mainView').classList.remove('active');
+    document.getElementById('expensesView').classList.remove('active');
+    document.getElementById('taxView').classList.remove('active');
+    document.getElementById('backBtn').style.display = 'none';
+
+    const title = document.getElementById('pageTitle');
+
+    if(view === 'expenses') {
+        document.getElementById('expensesView').classList.add('active');
+        document.getElementById('backBtn').style.display = 'inline-flex';
+        title.textContent = "Total Payroll Expenses";
+    } else if(view === 'taxBreakdown') {
+        renderTaxTable();
+        document.getElementById('taxView').classList.add('active');
+        document.getElementById('backBtn').style.display = 'inline-flex';
+        title.textContent = "Employee Tax Breakdown";
+    } else {
+        document.getElementById('mainView').classList.add('active');
+        title.textContent = "Tax & Compliance";
+    }
+  }
+
+  function renderTaxTable() {
+    const body = document.getElementById('taxBody');
+    body.innerHTML = '';
+    employees.forEach(emp => {
+      const total = emp.tax + emp.sss + emp.ph;
+      body.innerHTML += `
+        <tr>
+          <td><strong>${emp.name}</strong></td>
+          <td>₱${emp.gross.toLocaleString()}</td>
+          <td>₱${emp.tax.toLocaleString()}</td>
+          <td>₱${emp.sss.toLocaleString()}</td>
+          <td>₱${emp.ph.toLocaleString()}</td>
+          <td style="color:var(--red); font-weight:600;">₱${total.toLocaleString()}</td>
+        </tr>
+      `;
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll System - View Slips</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1d4ed8; --blue-mid: #3b82f6; --blue-light: #dbeafe; --blue-lighter: #eff6ff;
+    --green: #10b981; --green-light: #d1fae5; --amber: #f59e0b; --amber-light: #fef3c7;
+    --red: #ef4444; --red-light: #fee2e2; --bg: #f0f4fb; --sidebar-bg: #ffffff;
+    --card-bg: #ffffff; --text: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+    --shadow: 0 2px 16px rgba(29,78,216,0.07); --radius: 16px; --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: 224px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 28px 16px; position: fixed; height: 100vh; border-right: 1px solid var(--border); }
+  .logo { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 36px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
+  .nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13.5px; color: var(--text-muted); text-decoration: none; transition: 0.2s; }
+  .nav-item:hover { background: var(--blue-light); color: var(--blue); }
+  .nav-item.active { background: var(--blue); color: #fff; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .logout-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--red);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+    text-decoration:none; font-weight:600;
+  }
+  .logout-item:hover { background:var(--red-light); color:var(--red); }
+  .logout-item svg { width:18px; height:18px; }
+
+  /* ── MAIN ── */
+  .main { margin-left: 224px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  .topbar h2 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; }
+
+  /* ── PAGE CONTENT ── */
+  .page { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; }
+  
+  /* ── STAT CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+  .stat-value { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; margin-top: 4px; }
+
+  /* ── TABLE ── */
+  .table-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 14px 24px; font-size: 12px; color: var(--text-muted); background: #f8fafc; }
+  td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid var(--border); }
+  
+  .badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+
+  .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+
+  /* ── DETAIL VIEW ── */
+  #detailView { display: none; }
+  .detail-card { background: #fff; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); max-width: 800px; margin: 0 auto; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px; }
+  .detail-section h4 { font-family: 'Sora', sans-serif; margin-bottom: 12px; border-bottom: 2px solid var(--bg); padding-bottom: 8px; }
+  .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+  .total-row { margin-top: 16px; padding-top: 16px; border-top: 2px dashed var(--border); font-weight: 700; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+
+  <nav class="nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="employee.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Employees
+    </a>
+    <a class="nav-item active" href="payroll.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Payroll
+    </a>
+    <a class="nav-item" href="attendance.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item" href="analytics.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Report & Analytics
+    </a>
+    <a class="nav-item" href="tax.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Tax & Compliance
+    </a>
+  </nav>
+
+  <a href="login.html" class="logout-item">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    Logout
+  </a>
+
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <h2 id="pageTitle">Payroll Records</h2>
+    <div id="headerActions">
+        <button class="btn btn-outline" onclick="fetchData()">Fetch Data</button>
+        <button class="btn btn-primary" onclick="processAllPayroll()">Generate Payroll Record</button>
+    </div>
+    <button class="btn btn-outline" id="backBtn" style="display:none;" onclick="showTableView()">← Back to List</button>
+  </header>
+
+  <div class="page" id="tableView">
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Gross</div><div class="stat-value" id="statGross">₱0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Deductions</div><div class="stat-value" id="statDed" style="color:var(--red)">₱0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Net Pay</div><div class="stat-value" id="statNet" style="color:var(--green)">₱0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" id="statStatus"><span class="badge badge-blue">Awaiting Data</span></div></div>
+    </div>
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Basic Salary</th>
+                    <th>OT Pay</th>
+                    <th>Allowances</th>
+                    <th>Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="payrollBody">
+                <tr><td colspan="7" style="text-align:center; color:var(--text-muted)">Click "Fetch Data" to load employee records.</td></tr>
+            </tbody>
+        </table>
+    </div>
+  </div>
+
+  <div class="page" id="detailView">
+    <div class="detail-card" id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+let employees = [];
+
+// 1. Fetching Logic (Mocking the data retrieval)
+function fetchData() {
+    employees = [
+        { id: 101, name: "Guy Hawkins", basic: 45000, otHours: 10, allowance: 2500, tax: 4500, sss: 1200, status: "Pending" },
+        { id: 102, name: "Floyd Miles", basic: 38000, otHours: 5, allowance: 1500, tax: 3200, sss: 1200, status: "Pending" },
+        { id: 103, name: "Jane Cooper", basic: 55000, otHours: 0, allowance: 5000, tax: 6800, sss: 1200, status: "Pending" }
+    ];
+    renderTable();
+}
+
+// 2. Compute Salary Logic
+function calculateSalary(emp) {
+    const hourlyRate = (emp.basic / 22) / 8;
+    const otPay = emp.otHours * (hourlyRate * 1.25);
+    const gross = emp.basic + otPay + emp.allowance;
+    const totalDed = emp.tax + emp.sss;
+    const net = gross - totalDed;
+    
+    return { otPay, gross, totalDed, net };
+}
+
+function renderTable() {
+    const body = document.getElementById('payrollBody');
+    body.innerHTML = '';
+    
+    employees.forEach((emp, index) => {
+        const calc = calculateSalary(emp);
+        body.innerHTML += `
+            <tr>
+                <td><strong>${emp.name}</strong></td>
+                <td>₱${emp.basic.toLocaleString()}</td>
+                <td>₱${calc.otPay.toFixed(2)}</td>
+                <td>₱${emp.allowance.toLocaleString()}</td>
+                <td>₱${calc.totalDed.toLocaleString()}</td>
+                <td><strong>₱${calc.net.toLocaleString()}</strong></td>
+                <td>
+                    <button class="btn btn-outline" onclick="viewDetails(${index})">View Details</button>
+                </td>
+            </tr>
+        `;
+    });
+    updateStats();
+}
+
+// 3. Overall Payroll Processing & Stats
+function processAllPayroll() {
+    if(employees.length === 0) return alert("Fetch data first!");
+    employees.forEach(e => e.status = "Processed");
+    updateStats();
+    alert("Payroll Record Generated & Status Updated to 'Processed'");
+}
+
+function updateStats() {
+    let tGross = 0, tDed = 0, tNet = 0;
+    employees.forEach(emp => {
+        const c = calculateSalary(emp);
+        tGross += c.gross; tDed += c.totalDed; tNet += c.net;
+    });
+    document.getElementById('statGross').textContent = `₱${tGross.toLocaleString()}`;
+    document.getElementById('statDed').textContent = `₱${tDed.toLocaleString()}`;
+    document.getElementById('statNet').textContent = `₱${tNet.toLocaleString()}`;
+    if(employees.length > 0) {
+        document.getElementById('statStatus').innerHTML = `<span class="badge badge-green">Ready</span>`;
+    }
+}
+
+// 4. View Details Card Logic
+function viewDetails(idx) {
+    const emp = employees[idx];
+    const c = calculateSalary(emp);
+    
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('headerActions').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+    document.getElementById('backBtn').style.display = 'block';
+    document.getElementById('pageTitle').textContent = `Payslip: ${emp.name}`;
+
+    document.getElementById('detailContent').innerHTML = `
+        <div class="detail-section">
+            <h4>Employee Information</h4>
+            <div class="detail-row"><span>Employee ID:</span> <span>#${emp.id}</span></div>
+            <div class="detail-row"><span>Status:</span> <span class="badge badge-green">${emp.status}</span></div>
+        </div>
+        <div class="detail-grid">
+            <div class="detail-section">
+                <h4>Earnings</h4>
+                <div class="detail-row"><span>Basic Salary:</span> <span>₱${emp.basic.toLocaleString()}</span></div>
+                <div class="detail-row"><span>Overtime (${emp.otHours} hrs):</span> <span>₱${c.otPay.toFixed(2)}</span></div>
+                <div class="detail-row"><span>Allowances:</span> <span>₱${emp.allowance.toLocaleString()}</span></div>
+                <div class="detail-row total-row" style="color:var(--text)"><span>Gross Pay:</span> <span>₱${c.gross.toLocaleString()}</span></div>
+            </div>
+            <div class="detail-section">
+                <h4>Deductions</h4>
+                <div class="detail-row"><span>Withholding Tax:</span> <span>₱${emp.tax.toLocaleString()}</span></div>
+                <div class="detail-row"><span>SSS Contribution:</span> <span>₱${emp.sss.toLocaleString()}</span></div>
+                <div class="detail-row total-row" style="color:var(--red)"><span>Total Ded:</span> <span>₱${c.totalDed.toLocaleString()}</span></div>
+            </div>
+        </div>
+        <div class="total-row" style="text-align:right; font-size:24px; color:var(--blue)">
+            <span style="font-size:14px; color:var(--text-muted)">NET TAKE HOME:</span><br>
+            ₱${c.net.toLocaleString()}
+        </div>
+    `;
+}
+
+function showTableView() {
+    document.getElementById('tableView').style.display = 'flex';
+    document.getElementById('headerActions').style.display = 'flex';
+    document.getElementById('detailView').style.display = 'none';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('pageTitle').textContent = "Payroll Records";
+}
+</script>
+</body>
+</html>

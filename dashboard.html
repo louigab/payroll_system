@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll System – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:        #1d4ed8;
+    --blue-mid:    #3b82f6;
+    --blue-light:  #dbeafe;
+    --blue-lighter:#eff6ff;
+    --green:       #10b981;
+    --green-light: #d1fae5;
+    --amber:       #f59e0b;
+    --amber-light: #fef3c7;
+    --red:         #ef4444;
+    --red-light:   #fee2e2;
+    --violet:      #7c3aed;
+    --violet-light:#ede9fe;
+    --bg:          #f0f4fb;
+    --card:        #ffffff;
+    --text:        #0f172a;
+    --text-muted:  #64748b;
+    --text-light:  #94a3b8;
+    --border:      #e2e8f0;
+    --shadow:      0 2px 16px rgba(29,78,216,.07);
+    --shadow-md:   0 8px 32px rgba(29,78,216,.13);
+    --radius:      16px;
+    --radius-sm:   10px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    font-family:'DM Sans',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar{
+    width:224px; min-height:100vh;
+    background:var(--card);
+    display:flex; flex-direction:column;
+    padding:28px 16px 24px;
+    position:fixed; left:0; top:0; bottom:0;
+    border-right:1px solid var(--border);
+    z-index:10;
+  }
+  .logo{
+    font-family:'Sora',sans-serif;
+    font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:36px; padding:0 8px; line-height:1.3;
+  }
+  .logo-icon{
+    width:36px; height:36px; flex-shrink:0;
+    background:var(--blue); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:17px; font-weight:800;
+  }
+  .nav{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:var(--radius-sm);
+    font-size:13.5px; font-weight:500; color:var(--text-muted);
+    cursor:pointer; transition:all .18s; text-decoration:none;
+  }
+  .nav-item:hover{background:var(--blue-light);color:var(--blue);}
+  .nav-item.active{background:var(--blue);color:#fff;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .settings-item{
+    margin-top:16px; display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--text-muted);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+  }
+  .settings-item:hover{background:var(--blue-light);color:var(--blue);}
+  .settings-item svg{width:18px;height:18px;}
+
+  .logout-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; font-size:13.5px; color:var(--red);
+    cursor:pointer; border-radius:var(--radius-sm); transition:background .15s;
+    text-decoration:none; font-weight:600;
+  }
+  .logout-item:hover { background:var(--red-light); color:var(--red); }
+  .logout-item svg { width:18px; height:18px; }
+
+  /* ── MAIN ── */
+  .main{margin-left:224px;flex:1;display:flex;flex-direction:column;}
+
+  /* ── TOPBAR ── */
+  .topbar{
+    background:#fff; padding:16px 32px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:5;
+  }
+  .topbar-left h2{
+    font-family:'Sora',sans-serif;
+    font-size:24px; font-weight:700;
+  }
+  .topbar-left p{font-size:13px;color:var(--text-muted);}
+  .topbar-right{display:flex;align-items:center;gap:14px;}
+  .search-bar{
+    display:flex; align-items:center; gap:8px;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:100px; padding:8px 16px; width:210px;
+  }
+  .search-bar input{
+    border:none; background:transparent; outline:none;
+    font-size:13px; color:var(--text); width:100%;
+    font-family:'DM Sans',sans-serif;
+  }
+  .search-bar svg{width:14px;height:14px;flex-shrink:0;color:var(--text-muted);}
+  .notif-btn{
+    width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--border);background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;position:relative;transition:background .15s;
+  }
+  .notif-btn:hover{background:var(--blue-light);}
+  .notif-btn svg{width:18px;height:18px;color:var(--text-muted);}
+  .notif-dot{
+    position:absolute;top:6px;right:6px;
+    width:7px;height:7px;background:var(--red);
+    border-radius:50%;border:2px solid #fff;
+  }
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:15px;
+    cursor:pointer;border:2px solid var(--blue-light);
+  }
+  .date-badge{
+    background:var(--blue-lighter);
+    border:1px solid var(--blue-light);
+    color:var(--blue);
+    padding:6px 14px;border-radius:100px;
+    font-size:12.5px;font-weight:600;
+  }
+
+  /* ── PAGE CONTENT ── */
+  .page{padding:28px 32px;display:flex;flex-direction:column;gap:24px;}
+
+  /* ── HERO BANNER ── */
+  .hero-banner{
+    background:linear-gradient(120deg,#1d4ed8 0%,#3b82f6 60%,#60a5fa 100%);
+    border-radius:var(--radius);
+    padding:28px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    overflow:hidden;position:relative;
+    box-shadow:0 8px 32px rgba(29,78,216,.25);
+  }
+  .hero-banner::before{
+    content:'';position:absolute;
+    right:-60px;top:-60px;
+    width:260px;height:260px;
+    background:rgba(255,255,255,.07);
+    border-radius:50%;
+  }
+  .hero-banner::after{
+    content:'';position:absolute;
+    right:80px;bottom:-80px;
+    width:180px;height:180px;
+    background:rgba(255,255,255,.05);
+    border-radius:50%;
+  }
+  .hero-text h1{
+    font-family:'Sora',sans-serif;
+    font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;
+  }
+  .hero-text p{font-size:13.5px;color:rgba(255,255,255,.8);max-width:400px;line-height:1.6;}
+  .hero-pills{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+  .hero-pill{
+    background:rgba(255,255,255,.18);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.25);
+    color:#fff;padding:6px 14px;border-radius:100px;
+    font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;
+  }
+  .hero-pill .dot{width:7px;height:7px;border-radius:50%;}
+  .hero-right{
+    display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+    position:relative;z-index:1;
+  }
+  .hero-stat{
+    background:rgba(255,255,255,.15);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:12px;padding:14px 20px;text-align:center;min-width:110px;
+  }
+  .hero-stat .hs-val{
+    font-family:'Sora',sans-serif;font-size:28px;font-weight:800;color:#fff;
+  }
+  .hero-stat .hs-label{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;}
+
+  /* ── STAT CARDS ── */
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .stat-card{
+    background:var(--card);border-radius:var(--radius);
+    padding:20px; box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:12px;
+    transition:transform .2s,box-shadow .2s;
+    position:relative;overflow:hidden;
+  }
+  .stat-card::after{
+    content:'';position:absolute;
+    bottom:-20px;right:-20px;
+    width:80px;height:80px;border-radius:50%;
+    opacity:.06;
+  }
+  .stat-card.c-blue::after{background:var(--blue);}
+  .stat-card.c-green::after{background:var(--green);}
+  .stat-card.c-amber::after{background:var(--amber);}
+  .stat-card.c-violet::after{background:var(--violet);}
+  .stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;}
+  .stat-icon{
+    width:42px;height:42px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stat-icon svg{width:20px;height:20px;}
+  .stat-icon.blue{background:var(--blue-light);color:var(--blue);}
+  .stat-icon.green{background:var(--green-light);color:var(--green);}
+  .stat-icon.amber{background:var(--amber-light);color:var(--amber);}
+  .stat-icon.violet{background:var(--violet-light);color:var(--violet);}
+  .stat-trend{
+    font-size:11.5px;font-weight:600;
+    padding:3px 8px;border-radius:100px;
+  }
+  .trend-up{background:var(--green-light);color:var(--green);}
+  .trend-down{background:var(--red-light);color:var(--red);}
+  .trend-flat{background:var(--amber-light);color:var(--amber);}
+  .stat-value{
+    font-family:'Sora',sans-serif;
+    font-size:32px;font-weight:700;line-height:1;
+  }
+  .stat-label{font-size:12.5px;color:var(--text-muted);font-weight:500;}
+  .stat-bar{height:4px;border-radius:100px;background:var(--border);margin-top:4px;}
+  .stat-bar-fill{height:100%;border-radius:100px;transition:width .8s ease;}
+
+  /* ── TWO-COL LAYOUT ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .three-col{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:20px;}
+
+  /* ── CARD BASE ── */
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .card-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px 12px;
+  }
+  .card-header-left h3{
+    font-family:'Sora',sans-serif;font-size:15px;font-weight:700;
+  }
+  .card-header-left p{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+  .card-link{
+    font-size:12px;font-weight:600;color:var(--blue);
+    text-decoration:none;display:flex;align-items:center;gap:4px;
+    padding:5px 10px;border-radius:8px;
+    transition:background .15s;
+  }
+  .card-link:hover{background:var(--blue-light);}
+  .card-link svg{width:12px;height:12px;}
+
+  /* ── MINI TABLE ── */
+  .mini-table{width:100%;border-collapse:collapse;}
+  .mini-table thead tr{border-bottom:1px solid var(--border);}
+  .mini-table thead th{
+    padding:8px 22px;text-align:left;
+    font-size:11px;font-weight:600;color:var(--text-light);
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .mini-table tbody tr{
+    border-bottom:1px solid var(--border);
+    transition:background .12s;cursor:default;
+  }
+  .mini-table tbody tr:last-child{border-bottom:none;}
+  .mini-table tbody tr:hover{background:var(--blue-lighter);}
+  .mini-table tbody td{padding:10px 22px;font-size:13px;}
+  .emp-cell{display:flex;align-items:center;gap:9px;}
+  .emp-av{
+    width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+  }
+  .emp-nm{font-weight:600;font-size:13px;}
+  .badge{
+    display:inline-flex;align-items:center;
+    padding:3px 10px;border-radius:100px;
+    font-size:11.5px;font-weight:600;
+  }
+  .badge.present{background:var(--green-light);color:var(--green);}
+  .badge.absent{background:var(--red-light);color:var(--red);}
+  .badge.late{background:var(--amber-light);color:var(--amber);}
+  .badge.active{background:var(--green-light);color:var(--green);}
+  .badge.inactive{background:var(--red-light);color:var(--red);}
+  .badge.new{background:var(--blue-light);color:var(--blue);}
+
+  /* ── DONUT CHART ── */
+  .donut-wrap{
+    display:flex;align-items:center;justify-content:center;
+    padding:10px 22px 22px;gap:24px;
+  }
+  .donut-svg{flex-shrink:0;}
+  .donut-legend{display:flex;flex-direction:column;gap:10px;}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .legend-val{font-weight:700;margin-left:auto;padding-left:12px;}
+
+  /* ── BAR CHART ── */
+  .bar-chart-wrap{padding:10px 22px 20px;}
+  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:100px;margin-bottom:8px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bar-fill{
+    width:100%;border-radius:6px 6px 0 0;
+    background:linear-gradient(180deg,#3b82f6,#1d4ed8);
+    transition:height .6s ease;min-height:4px;
+  }
+  .bar-fill.dim{background:var(--blue-light);}
+  .bar-label{font-size:10.5px;color:var(--text-light);font-weight:500;}
+  .bar-axis{
+    display:flex;justify-content:space-between;
+    border-top:1px solid var(--border);
+    padding-top:6px;
+  }
+  .bar-axis span{font-size:10px;color:var(--text-light);}
+
+  /* ── ACTIVITY FEED ── */
+  .activity-list{padding:4px 22px 18px;display:flex;flex-direction:column;gap:0;}
+  .activity-item{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:10px 0;border-bottom:1px solid var(--border);
+  }
+  .activity-item:last-child{border-bottom:none;}
+  .activity-icon{
+    width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;font-size:16px;margin-top:1px;
+  }
+  .activity-body{flex:1;}
+  .activity-body strong{font-size:13px;font-weight:600;}
+  .activity-body p{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5;}
+  .activity-time{font-size:11px;color:var(--text-light);white-space:nowrap;margin-top:3px;}
+
+  /* ── PAYROLL SUMMARY ── */
+  .payroll-summary{padding:6px 22px 20px;display:flex;flex-direction:column;gap:12px;}
+  .pay-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;border-radius:var(--radius-sm);
+    background:var(--blue-lighter);border:1px solid var(--blue-light);
+  }
+  .pay-row.highlight{
+    background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+    border:none;color:#fff;
+  }
+  .pay-row .pr-label{font-size:13px;font-weight:500;}
+  .pay-row .pr-val{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;}
+  .pay-row.highlight .pr-label,.pay-row.highlight .pr-val{color:#fff;}
+  .pay-row .pr-label-muted{font-size:11.5px;color:var(--text-muted);}
+  .pay-row.highlight .pr-label-muted{color:rgba(255,255,255,.75);}
+
+  /* ── QUICK ACTIONS ── */
+  .quick-actions{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+    padding:6px 22px 20px;
+  }
+  .qa-btn{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:16px 8px;border-radius:var(--radius-sm);
+    border:1.5px solid var(--border);background:#fff;
+    cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;
+    text-decoration:none;
+  }
+  .qa-btn:hover{border-color:var(--blue);background:var(--blue-lighter);color:var(--blue);}
+  .qa-icon{
+    width:38px;height:38px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .qa-label{font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;}
+  .qa-btn:hover .qa-label{color:var(--blue);}
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .hero-banner{animation:fadeUp .45s ease both;}
+  .stats-grid .stat-card:nth-child(1){animation:fadeUp .4s .08s ease both;}
+  .stats-grid .stat-card:nth-child(2){animation:fadeUp .4s .14s ease both;}
+  .stats-grid .stat-card:nth-child(3){animation:fadeUp .4s .20s ease both;}
+  .stats-grid .stat-card:nth-child(4){animation:fadeUp .4s .26s ease both;}
+  .three-col>*:nth-child(1){animation:fadeUp .4s .32s ease both;}
+  .three-col>*:nth-child(2){animation:fadeUp .4s .38s ease both;}
+  .three-col>*:nth-child(3){animation:fadeUp .4s .44s ease both;}
+  .two-col>*:nth-child(1){animation:fadeUp .4s .48s ease both;}
+  .two-col>*:nth-child(2){animation:fadeUp .4s .54s ease both;}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+  <nav class="nav">
+    <a class="nav-item active" href="dashboard.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="employee.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Employee
+    </a>
+    <a class="nav-item" href="payroll.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Payroll
+    </a>
+    <a class="nav-item" href="attendance.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item" href="analytics.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Reports and Analytics
+    </a>
+    <a class="nav-item" href="tax.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Tax and Compliance
+    </a>
+  </nav>
+  
+  <div style="flex: 1;"></div>
+  
+  <div style="margin-top: 16px;">
+    <a href="login.html" class="logout-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <p>Good morning, Admin 👋</p>
+      <h2>Dashboard Overview</h2>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search now" />
+      </div>
+      <span class="date-badge" id="liveDateBadge"></span>
+      <div class="notif-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="notif-dot"></span>
+      </div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <!-- PAGE -->
+  <div class="page">
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h1>BFAR Payroll System — April 2025</h1>
+        <p>All payroll operations are on track. 98 employees are active this cycle. Next payroll release is scheduled on <strong style="color:#fff;">April 30, 2025</strong>.</p>
+        <div class="hero-pills">
+          <div class="hero-pill"><span class="dot" style="background:#4ade80"></span> Payroll On Schedule</div>
+          <div class="hero-pill"><span class="dot" style="background:#fbbf24"></span> 3 Pending Approvals</div>
+          <div class="hero-pill"><span class="dot" style="background:#f87171"></span> 2 Compliance Flags</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-stat">
+          <div class="hs-val">103</div>
+          <div class="hs-label">Total Employees</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hs-val">₱2.1M</div>
+          <div class="hs-label">Monthly Payroll</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card c-blue">
+        <div class="stat-top">
+          <div class="stat-icon blue">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <span class="stat-trend trend-up">↑ 4%</span>
+        </div>
+        <div class="stat-value">103</div>
+        <div class="stat-label">Total Employees</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:82%;background:var(--blue);"></div></div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-top">
+          <div class="stat-icon green">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <span class="stat-trend trend-up">↑ 2%</span>
+        </div>
+        <div class="stat-value">95</div>
+        <div class="stat-label">Present Today</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:92%;background:var(--green);"></div></div>
+      </div>
+      <div class="stat-card c-amber">
+        <div class="stat-top">
+          <div class="stat-icon amber">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <span class="stat-trend trend-flat">→ 0%</span>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Late Arrivals</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:18%;background:var(--amber);"></div></div>
+      </div>
+      <div class="stat-card c-violet">
+        <div class="stat-top">
+          <div class="stat-icon violet">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <span class="stat-trend trend-up">↑ 8%</span>
+        </div>
+        <div class="stat-value">₱2.1M</div>
+        <div class="stat-label">This Month's Payroll</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:67%;background:var(--violet);"></div></div>
+      </div>
+    </div>
+
+    <!-- THREE COL: Employee Table | Donut | Bar Chart -->
+    <div class="three-col">
+
+      <!-- MINI EMPLOYEE TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <h3>Recent Employees</h3>
+            <p>Latest additions to the roster</p>
+          </div>
+          <a class="card-link" href="bfar-payroll.html">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">GH</div><span class="emp-nm">Guy Hawkins</span></div></td>
+              <td>HR</td><td><span class="badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#10b981,#059669)">FM</div><span class="emp-nm">Floyd Miles</span></div></td>
+              <td>HR</td><td><span class="badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">JD</div><span class="emp-nm">John Doe</span></div></td>
+              <td>IT</td><td><span class="badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#ef4444,#dc2626)">WW</div><span class="emp-nm">Wade Warren</span></div></td>
+              <td>IT</td><td><span class="badge active">Active</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">JC</div><span class="emp-nm">Jane Cooper</span></div></td>
+              <td>Finance</td><td><span class="badge new">New</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DONUT CHART — DEPT BREAKDOWN -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <h3>By Department</h3>
+            <p>Employee distribution</p>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+            <!-- total circumference for r=40: ~251.3 -->
+            <!-- IT: 35 → 85.4 | Finance: 28 → 68.4 | HR: 18 → 44 | Ops: 12 → 29.3 | Other: 10 → 24.4 -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#e2e8f0" stroke-width="16"/>
+            <!-- IT -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#3b82f6" stroke-width="16"
+              stroke-dasharray="85.4 251.3" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+            <!-- Finance -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#10b981" stroke-width="16"
+              stroke-dasharray="68.4 251.3" stroke-dashoffset="-85.4" transform="rotate(-90 55 55)"/>
+            <!-- HR -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#f59e0b" stroke-width="16"
+              stroke-dasharray="44 251.3" stroke-dashoffset="-153.8" transform="rotate(-90 55 55)"/>
+            <!-- Ops -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#7c3aed" stroke-width="16"
+              stroke-dasharray="29.3 251.3" stroke-dashoffset="-197.8" transform="rotate(-90 55 55)"/>
+            <!-- Other -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#cbd5e1" stroke-width="16"
+              stroke-dasharray="24.3 251.3" stroke-dashoffset="-227.1" transform="rotate(-90 55 55)"/>
+            <text x="55" y="52" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a" font-family="Sora">103</text>
+            <text x="55" y="65" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="DM Sans">total</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>IT<span class="legend-val">35</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Finance<span class="legend-val">28</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>HR<span class="legend-val">18</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Operations<span class="legend-val">12</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#cbd5e1"></div>Others<span class="legend-val">10</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAR CHART — MONTHLY PAYROLL -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <h3>Payroll Trend</h3>
+            <p>Last 6 months (₱ millions)</p>
+          </div>
+        </div>
+        <div class="bar-chart-wrap">
+          <div class="bar-chart" id="barChart"></div>
+          <div class="bar-axis">
+            <span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TWO COL: Attendance + Activity -->
+    <div class="two-col">
+
+      <!-- MINI ATTENDANCE TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <h3>Today's Attendance</h3>
+            <p>April 20, 2025 — live snapshot</p>
+          </div>
+          <a class="card-link" href="#">View all <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Time In</th>
+              <th>Time Out</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">GH</div><span class="emp-nm">Guy Hawkins</span></div></td>
+              <td>8:02 AM</td><td>—</td><td><span class="badge present">Present</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">JD</div><span class="emp-nm">John Doe</span></div></td>
+              <td>8:47 AM</td><td>—</td><td><span class="badge late">Late</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#10b981,#059669)">FM</div><span class="emp-nm">Floyd Miles</span></div></td>
+              <td>7:55 AM</td><td>—</td><td><span class="badge present">Present</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">JC</div><span class="emp-nm">Jane Cooper</span></div></td>
+              <td>—</td><td>—</td><td><span class="badge absent">Absent</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#ef4444,#dc2626)">WW</div><span class="emp-nm">Wade Warren</span></div></td>
+              <td>8:10 AM</td><td>—</td><td><span class="badge present">Present</span></td>
+            </tr>
+            <tr>
+              <td><div class="emp-cell"><div class="emp-av" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">JW</div><span class="emp-nm">Jenny Wilson</span></div></td>
+              <td>8:05 AM</td><td>—</td><td><span class="badge present">Present</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RIGHT COLUMN: Payroll Summary + Activity -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- PAYROLL SUMMARY -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Payroll Summary</h3>
+              <p>April 2025 cycle</p>
+            </div>
+          </div>
+          <div class="payroll-summary">
+            <div class="pay-row">
+              <div><div class="pr-label">Gross Pay</div><div class="pr-label-muted">Before deductions</div></div>
+              <div class="pr-val">₱2,450,000</div>
+            </div>
+            <div class="pay-row">
+              <div><div class="pr-label">Total Deductions</div><div class="pr-label-muted">Tax, SSS, PhilHealth, Pag-IBIG</div></div>
+              <div class="pr-val" style="color:var(--red)">– ₱348,200</div>
+            </div>
+            <div class="pay-row highlight">
+              <div><div class="pr-label">Net Payroll</div><div class="pr-label-muted">Released April 30</div></div>
+              <div class="pr-val">₱2,101,800</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Recent Activity</h3>
+              <p>System log</p>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon" style="background:var(--green-light)">✅</div>
+              <div class="activity-body">
+                <strong>Payslips Generated</strong>
+                <p>103 payslips successfully generated for April 2025.</p>
+              </div>
+              <div class="activity-time">2h ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:var(--blue-light)">👤</div>
+              <div class="activity-body">
+                <strong>New Employee Added</strong>
+                <p>Jane Cooper was onboarded to the Finance department.</p>
+              </div>
+              <div class="activity-time">5h ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:var(--amber-light)">⚠️</div>
+              <div class="activity-body">
+                <strong>Compliance Flag</strong>
+                <p>2 employees missing BIR TIN updates — action required.</p>
+              </div>
+              <div class="activity-time">Yesterday</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <h3>Quick Actions</h3>
+          <p>Common payroll tasks</p>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <a class="qa-btn" href="bfar-payroll.html">
+          <div class="qa-icon" style="background:var(--blue-light)">👥</div>
+          <span class="qa-label">Manage Employees</span>
+        </a>
+        <a class="qa-btn" href="#">
+          <div class="qa-icon" style="background:var(--green-light)">💸</div>
+          <span class="qa-label">Run Payroll</span>
+        </a>
+        <a class="qa-btn" href="#">
+          <div class="qa-icon" style="background:var(--amber-light)">🗓️</div>
+          <span class="qa-label">View Attendance</span>
+        </a>
+        <a class="qa-btn" href="#">
+          <div class="qa-icon" style="background:var(--violet-light)">📄</div>
+          <span class="qa-label">Download Payslips</span>
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<script>
+  // Live date badge
+  const d = new Date();
+  document.getElementById('liveDateBadge').textContent =
+    d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  // Bar chart
+  const data = [
+    {label:'Nov',val:1.8,dim:true},
+    {label:'Dec',val:1.95,dim:true},
+    {label:'Jan',val:2.0,dim:true},
+    {label:'Feb',val:1.9,dim:true},
+    {label:'Mar',val:2.05,dim:true},
+    {label:'Apr',val:2.1,dim:false},
+  ];
+  const max = Math.max(...data.map(d=>d.val));
+  const chart = document.getElementById('barChart');
+  data.forEach(item=>{
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const pct = Math.round((item.val/max)*100);
+    col.innerHTML = `
+      <div style="font-size:10px;color:var(--text-muted);font-weight:600">₱${item.val}M</div>
+      <div class="bar-fill${item.dim?' dim':''}" style="height:${pct}%"></div>
+    `;
+    chart.appendChild(col);
+  });
+</script>
+</body>
+</html>

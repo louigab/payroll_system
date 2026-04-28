@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFAR Payroll System</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1d4ed8;
+    --blue-mid: #3b82f6;
+    --blue-light: #dbeafe;
+    --blue-lighter: #eff6ff;
+    --green: #10b981;
+    --green-light: #d1fae5;
+    --red: #ef4444;
+    --red-light: #fee2e2;
+    --bg: #f0f4fb;
+    --sidebar-bg: #ffffff;
+    --card-bg: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --border: #e2e8f0;
+    --shadow: 0 2px 16px rgba(29,78,216,0.07);
+    --shadow-md: 0 8px 32px rgba(29,78,216,0.13);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 224px;
+    min-height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 16px 24px;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    border-right: 1px solid var(--border);
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 36px;
+    padding: 0 8px;
+    line-height: 1.3;
+  }
+  .logo-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: var(--blue);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; font-weight: 800;
+  }
+
+  .nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--blue-light); color: var(--blue); }
+  .nav-item.active { background: var(--blue); color: #fff; }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  .settings-item {
+    margin-top: 16px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    font-size: 13.5px; color: var(--text-muted);
+    cursor: pointer; border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+  .settings-item:hover { background: var(--blue-light); color: var(--blue); }
+  .settings-item svg { width: 18px; height: 18px; }
+
+  .logout-item {
+    margin-top: 4px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; font-size: 13.5px; font-weight: 600; 
+    color: var(--red); cursor: pointer; border-radius: var(--radius-sm); 
+    transition: background 0.15s; text-decoration: none;
+  }
+  .logout-item:hover { background: var(--red-light); color: var(--red); }
+  .logout-item svg { width: 18px; height: 18px; }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 224px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: #fff;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .topbar-left h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 26px; font-weight: 700;
+    color: var(--text);
+  }
+  .topbar-left p { font-size: 13px; color: var(--text-muted); }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 16px;
+    width: 210px;
+  }
+  .search-bar input {
+    border: none; background: transparent; outline: none;
+    font-size: 13px; color: var(--text); width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .search-bar svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); }
+
+  .notif-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+    transition: background 0.15s;
+  }
+  .notif-btn:hover { background: var(--blue-light); }
+  .notif-btn svg { width: 18px; height: 18px; color: var(--text-muted); }
+  .notif-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 7px; height: 7px;
+    background: var(--red); border-radius: 50%;
+    border: 2px solid #fff;
+  }
+
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 15px;
+    cursor: pointer;
+    border: 2px solid var(--blue-light);
+  }
+
+  /* ── CONTENT ── */
+  .content { display: flex; flex: 1; }
+
+  .content-left {
+    flex: 1;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  .stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stat-icon svg { width: 22px; height: 22px; }
+  .stat-icon.blue { background: var(--blue-light); color: var(--blue); }
+  .stat-icon.green { background: var(--green-light); color: var(--green); }
+  .stat-icon.red { background: var(--red-light); color: var(--red); }
+
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .stat-value { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 700; line-height: 1; }
+  .stat-desc { font-size: 11.5px; color: var(--text-light); line-height: 1.5; }
+
+  /* ── TABLE CARD ── */
+  .table-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px 14px;
+  }
+  .table-header-text h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 17px; font-weight: 700;
+  }
+  .table-header-text p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .table-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+    color: var(--text-muted);
+  }
+  .icon-btn:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .icon-btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  thead th {
+    padding: 10px 24px;
+    text-align: left;
+    font-size: 11.5px; font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--blue-lighter); }
+  tbody tr.selected-row { background: var(--blue-light); }
+  tbody td { padding: 12px 24px; font-size: 13.5px; }
+
+  .emp-cell { display: flex; align-items: center; gap: 10px; }
+  .emp-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .emp-name { font-weight: 600; }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+  }
+  .badge.active { background: var(--green-light); color: var(--green); }
+  .badge.inactive { background: var(--red-light); color: var(--red); }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    width: 296px;
+    background: var(--card-bg);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .detail-hero {
+    height: 150px;
+    background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 50%, #1d4ed8 100%);
+    position: relative;
+  }
+  .detail-avatar-wrap {
+    position: absolute;
+    bottom: -44px; left: 50%; transform: translateX(-50%);
+  }
+  .detail-avatar {
+    width: 88px; height: 88px; border-radius: 50%;
+    border: 4px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 28px; font-weight: 700;
+    box-shadow: 0 4px 20px rgba(29,78,216,0.25);
+  }
+  .edit-avatar-btn {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #fff; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); color: var(--text-muted);
+  }
+  .edit-avatar-btn svg { width: 13px; height: 13px; }
+
+  .detail-body {
+    padding: 58px 20px 20px;
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+
+  .detail-name {
+    text-align: center;
+    font-family: 'Sora', sans-serif;
+    font-size: 19px; font-weight: 700; margin-bottom: 4px;
+  }
+  .detail-role {
+    text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;
+  }
+
+  .detail-info { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .detail-row {
+    display: flex; align-items: center; justify-content: space-between; font-size: 13px;
+  }
+  .detail-row .dk { color: var(--text-muted); }
+  .detail-row .dv { font-weight: 600; }
+
+  .detail-divider { height: 1px; background: var(--border); margin: 4px 0 16px; }
+
+  .detail-link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s; margin-bottom: 10px;
+    color: var(--text); text-decoration: none;
+  }
+  .detail-link:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lighter); }
+  .detail-link svg { width: 16px; height: 16px; }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 520px;
+    max-width: 95vw;
+    box-shadow: 0 24px 60px rgba(15,23,42,0.2);
+    animation: modalIn 0.25s cubic-bezier(.34,1.56,.64,1) both;
+    overflow: hidden;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px; font-weight: 700;
+  }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted); transition: all 0.15s;
+    font-size: 18px; line-height: 1;
+  }
+  .modal-close:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+  .modal-body { padding: 22px 26px; display: flex; flex-direction: column; gap: 14px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input,
+  .form-group select {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+    font-size: 13.5px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+  .form-group select { cursor: pointer; }
+
+  .modal-footer {
+    padding: 16px 26px 22px;
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 10px 22px; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s; border: none;
+  }
+  .btn-secondary {
+    background: var(--bg); color: var(--text-muted);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-primary {
+    background: var(--blue); color: #fff;
+  }
+  .btn-primary:hover { background: #1e40af; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(29,78,216,0.3); }
+
+  /* ── DELETE CONFIRM MODAL ── */
+  .confirm-modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 400px;
+    max-width: 95vw;
+    box-shadow: 0 24px 60px rgba(15,23,42,0.2);
+    animation: modalIn 0.25s cubic-bezier(.34,1.56,.64,1) both;
+    padding: 32px 28px;
+    text-align: center;
+  }
+  .confirm-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--red-light); color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 26px;
+  }
+  .confirm-modal h3 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .confirm-modal p { font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--text);
+    color: #fff; font-size: 13.5px; font-weight: 500;
+    padding: 12px 20px; border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 200;
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .stat-card { animation: fadeIn 0.4s ease both; }
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.10s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .table-card { animation: fadeIn 0.4s ease 0.2s both; }
+  .detail-panel { animation: fadeIn 0.4s ease 0.25s both; }
+
+  .empty-row td {
+    text-align: center; padding: 32px; color: var(--text-light); font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">B</div>
+    <span>BFAR Payroll<br>System</span>
+  </div>
+
+  <nav class="nav">
+    <a class="nav-item" href="dashboard.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item active" href="employee.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Employees
+    </a>
+    <a class="nav-item" href="payroll.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Payroll
+    </a>
+    <a class="nav-item" href="attendance.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Attendance
+    </a>
+    <a class="nav-item" href="analytics.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Report & Analytics
+    </a>
+    <a class="nav-item" href="tax.html">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Tax & Compliance
+    </a>
+  </nav>
+
+  <div class="settings-item">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+    Settings
+  </div>
+
+
+  <a href="login.html" class="logout-item">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    Logout
+  </a>
+
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <p>Welcome back, Admin 👋</p>
+      <h2>Our Employees</h2>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search now" id="searchInput" oninput="filterTable()" />
+      </div>
+      <div class="notif-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="notif-dot"></span>
+      </div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="content-left">
+
+      <!-- STAT CARDS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div class="stat-label">Total Employees</div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-desc">Total workforce registered, with payroll processing on track.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+          <div class="stat-label">Active Employees</div>
+          <div class="stat-value" id="statActive">0</div>
+          <div class="stat-desc">Employees currently working, receiving payroll and benefits.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zm7-6h6M16 8v6"/></svg>
+          </div>
+          <div class="stat-label">Inactive Employees</div>
+          <div class="stat-value" id="statInactive">0</div>
+          <div class="stat-desc">Employees on leave or inactive, with payroll adjustments.</div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-header-text">
+            <h3>Employee List</h3>
+            <p>Here are employee payroll information for this month</p>
+          </div>
+          <div class="table-actions">
+            <button class="icon-btn danger" title="Delete selected employee" onclick="openDeleteModal()">
+              <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+            <button class="icon-btn" title="Add Employee" onclick="openAddModal()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Position</th>
+              <th>Department</th>
+              <th>Joining Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="employeeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <aside class="detail-panel">
+      <div class="detail-hero">
+        <div class="detail-avatar-wrap">
+          <div class="detail-avatar" id="detailAvatar" style="background: linear-gradient(135deg,#3b82f6,#1d4ed8)">–</div>
+          <button class="edit-avatar-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-name" id="detailName">—</div>
+        <div class="detail-role" id="detailRole">Select an employee</div>
+        <div class="detail-info">
+          <div class="detail-row"><span class="dk">Position</span><span class="dv" id="dPos">—</span></div>
+          <div class="detail-row"><span class="dk">Department</span><span class="dv" id="dDept">—</span></div>
+          <div class="detail-row"><span class="dk">Joining Date</span><span class="dv" id="dJoin">—</span></div>
+          <div class="detail-row"><span class="dk">Salary</span><span class="dv" id="dSalary">—</span></div>
+          <div class="detail-row"><span class="dk">Status</span><span class="dv" id="dStatus">—</span></div>
+          <div class="detail-row"><span class="dk">Last Login</span><span class="dv" id="dLogin">—</span></div>
+        </div>
+        <div class="detail-divider"></div>
+        <a class="detail-link" href="#">Personal Information <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a class="detail-link" href="#">Attendance History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a class="detail-link" href="#">Payroll History <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ── ADD EMPLOYEE MODAL ── -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Employee</h3>
+      <button class="modal-close" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="fFirstName" placeholder="e.g. Juan" />
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="fLastName" placeholder="e.g. dela Cruz" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Position</label>
+          <input type="text" id="fPosition" placeholder="e.g. Fisheries Analyst" />
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select id="fDept">
+            <option value="">Select department</option>
+            <option>HR</option>
+            <option>IT</option>
+            <option>Finance</option>
+            <option>Operations</option>
+            <option>Legal</option>
+            <option>Marketing</option>
+            <option>Research</option>
+            <option>Administration</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Joining Date</label>
+          <input type="date" id="fJoining" />
+        </div>
+        <div class="form-group">
+          <label>Monthly Salary (₱)</label>
+          <input type="number" id="fSalary" placeholder="e.g. 35000" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="fStatus">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="fEmail" placeholder="e.g. juan@bfar.gov.ph" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <h3>Delete Employee?</h3>
+    <p id="deleteConfirmText">This action cannot be undone. The employee record will be permanently removed.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger btn" onclick="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const avatarColors = [
+    'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+    'linear-gradient(135deg,#10b981,#059669)',
+    'linear-gradient(135deg,#f59e0b,#d97706)',
+    'linear-gradient(135deg,#ef4444,#dc2626)',
+    'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+    'linear-gradient(135deg,#06b6d4,#0284c7)',
+    'linear-gradient(135deg,#ec4899,#be185d)',
+    'linear-gradient(135deg,#84cc16,#4d7c0f)',
+  ];
+
+  let employees = [
+    { name:'Guy Hawkins',    position:'HR Manager',              dept:'HR',        joining:'2025-02-01', salary:'4200',  status:'Active',   login:'Apr 10, 2025', color:0 },
+    { name:'Floyd Miles',   position:'Recruitment Specialist',  dept:'HR',        joining:'2025-02-01', salary:'3800',  status:'Active',   login:'Apr 18, 2025', color:1 },
+    { name:'John Doe',      position:'Product Designer',        dept:'IT',        joining:'2023-01-10', salary:'3500',  status:'Active',   login:'Mar 12, 2025', color:2 },
+    { name:'Wade Warren',   position:'Network Administrator',   dept:'IT',        joining:'2025-02-01', salary:'4600',  status:'Active',   login:'Apr 15, 2025', color:3 },
+    { name:'Jane Cooper',   position:'Chief Financial Officer', dept:'Finance',   joining:'2025-02-01', salary:'7200',  status:'Active',   login:'Apr 19, 2025', color:4 },
+    { name:'Jenny Wilson',  position:'Accountant',              dept:'Finance',   joining:'2025-02-01', salary:'3200',  status:'Active',   login:'Apr 17, 2025', color:5 },
+    { name:'Arlene McCoy',  position:'Payroll Specialist',      dept:'Finance',   joining:'2025-02-01', salary:'3400',  status:'Active',   login:'Apr 16, 2025', color:6 },
+    { name:'Jerome Bell',   position:'Sales Manager',           dept:'Operations',joining:'2025-02-01', salary:'5100',  status:'Active',   login:'Apr 11, 2025', color:7 },
+    { name:'Albert Flores', position:'Marketing Manager',       dept:'Marketing', joining:'2025-02-01', salary:'4800',  status:'Active',   login:'Apr 14, 2025', color:0 },
+    { name:'Dianne Russell',position:'UX Researcher',           dept:'IT',        joining:'2024-03-05', salary:'3900',  status:'Inactive', login:'Jan 30, 2025', color:4 },
+  ];
+
+  let selectedIdx = 2;
+
+  function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+  }
+
+  function fmtDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  function fmtSalary(s) {
+    if (!s) return '—';
+    return '₱' + Number(s).toLocaleString();
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = employees.length;
+    document.getElementById('statActive').textContent = employees.filter(e=>e.status==='Active').length;
+    document.getElementById('statInactive').textContent = employees.filter(e=>e.status==='Inactive').length;
+  }
+
+  function getFiltered() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    if (!q) return employees;
+    return employees.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      e.position.toLowerCase().includes(q) ||
+      e.dept.toLowerCase().includes(q)
+    );
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('employeeTableBody');
+    tbody.innerHTML = '';
+    if (!data.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No employees found.</td></tr>';
+      return;
+    }
+    data.forEach(emp => {
+      const origIdx = employees.indexOf(emp);
+      const tr = document.createElement('tr');
+      if (origIdx === selectedIdx) tr.classList.add('selected-row');
+      tr.innerHTML = `
+        <td>
+          <div class="emp-cell">
+            <div class="emp-avatar" style="background:${avatarColors[emp.color]}">${getInitials(emp.name)}</div>
+            <span class="emp-name">${emp.name}</span>
+          </div>
+        </td>
+        <td>${emp.position}</td>
+        <td>${emp.dept}</td>
+        <td>${fmtDate(emp.joining)}</td>
+        <td><span class="badge ${emp.status.toLowerCase()}">${emp.status}</span></td>
+      `;
+      tr.addEventListener('click', () => selectEmployee(origIdx));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function selectEmployee(idx) {
+    if (idx < 0 || idx >= employees.length) return;
+    selectedIdx = idx;
+    const emp = employees[idx];
+    document.getElementById('detailAvatar').textContent = getInitials(emp.name);
+    document.getElementById('detailAvatar').style.background = avatarColors[emp.color];
+    document.getElementById('detailName').textContent = emp.name;
+    document.getElementById('detailRole').textContent = emp.position;
+    document.getElementById('dPos').textContent = emp.position;
+    document.getElementById('dDept').textContent = emp.dept;
+    document.getElementById('dJoin').textContent = fmtDate(emp.joining);
+    document.getElementById('dSalary').textContent = fmtSalary(emp.salary);
+    document.getElementById('dStatus').innerHTML = `<span class="badge ${emp.status.toLowerCase()}">${emp.status}</span>`;
+    document.getElementById('dLogin').textContent = emp.login || '—';
+    renderTable(getFiltered());
+  }
+
+  function filterTable() { renderTable(getFiltered()); }
+
+  /* ── ADD MODAL ── */
+  function openAddModal() {
+    ['fFirstName','fLastName','fPosition','fEmail','fSalary'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fDept').value = '';
+    document.getElementById('fStatus').value = 'Active';
+    document.getElementById('fJoining').value = new Date().toISOString().split('T')[0];
+    document.getElementById('addModal').classList.add('open');
+  }
+  function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+
+  function saveEmployee() {
+    const first = document.getElementById('fFirstName').value.trim();
+    const last  = document.getElementById('fLastName').value.trim();
+    const pos   = document.getElementById('fPosition').value.trim();
+    const dept  = document.getElementById('fDept').value;
+    const join  = document.getElementById('fJoining').value;
+    const sal   = document.getElementById('fSalary').value;
+    const stat  = document.getElementById('fStatus').value;
+
+    if (!first || !last || !pos || !dept || !join) {
+      showToast('Please fill in all required fields.', 'error');
+      return;
+    }
+
+    const name = `${first} ${last}`;
+    const colorIdx = employees.length % avatarColors.length;
+    const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+
+    employees.push({ name, position: pos, dept, joining: join, salary: sal || '0', status: stat, login: today, color: colorIdx });
+
+    updateStats();
+    selectedIdx = employees.length - 1;
+    selectEmployee(selectedIdx);
+    closeAddModal();
+    showToast(`${name} added successfully!`, 'success');
+  }
+
+  /* ── DELETE MODAL ── */
+  function openDeleteModal() {
+    if (selectedIdx < 0 || selectedIdx >= employees.length) {
+      showToast('Please select an employee to delete.', 'error');
+      return;
+    }
+    const emp = employees[selectedIdx];
+    document.getElementById('deleteConfirmText').textContent =
+      `You are about to delete "${emp.name}". This action cannot be undone.`;
+    document.getElementById('deleteModal').classList.add('open');
+  }
+  function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
+
+  function confirmDelete() {
+    const emp = employees[selectedIdx];
+    employees.splice(selectedIdx, 1);
+    selectedIdx = Math.min(selectedIdx, employees.length - 1);
+    updateStats();
+    if (employees.length > 0) {
+      selectEmployee(selectedIdx);
+    } else {
+      renderTable([]);
+      // Reset panel
+      ['detailName','detailRole','dPos','dDept','dJoin','dSalary','dLogin'].forEach(id => document.getElementById(id).textContent = '—');
+      document.getElementById('dStatus').innerHTML = '—';
+      document.getElementById('detailAvatar').textContent = '–';
+    }
+    closeDeleteModal();
+    showToast(`${emp.name} has been deleted.`, 'error');
+  }
+
+  /* ── CLOSE ON OVERLAY CLICK ── */
+  document.getElementById('addModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddModal(); });
+  document.getElementById('deleteModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDeleteModal(); });
+
+  /* ── TOAST ── */
+  let toastTimer;
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3000);
+  }
+
+  // Init
+  updateStats();
+  renderTable(employees);
+  selectEmployee(selectedIdx);
+</script>
+</body>
+</html>
